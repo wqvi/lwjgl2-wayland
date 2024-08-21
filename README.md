@@ -1,3 +1,6 @@
+# What is this project?
+I personally use a purely wayland system. I want to play older versions of Minecraft. Unfortunately those only support X and I would rather not use Xwayland. So I decided to try my hand at patching lwjgl to work with wayland.
+
 LWJGL - Lightweight Java Game Library
 ======
 
