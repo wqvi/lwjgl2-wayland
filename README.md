@@ -1,6 +1,17 @@
 # What is this project?
 I personally use a purely wayland system. I want to play older versions of Minecraft. Unfortunately those only support X and I would rather not use Xwayland. So I decided to try my hand at patching lwjgl to work with wayland.
 
+# I built it this way instead
+This way will generate the libs/ path
+* ant generate-all
+* ant all
+
+# How to use this instead of the default lwjgl instance
+If you use MultiMC or PrismLauncher you can specify java command line arguments. Lwjgl has a command line argument known as org.lwjgl.librarypath. Specify this to the libs/linux path of the repository. An example:
+`
+-Dorg.lwjgl.librarypath=~/lwjgl2-wayland/libs/linux
+`
+
 LWJGL - Lightweight Java Game Library
 ======
 
