@@ -39,6 +39,8 @@
  * @version $Revision$
  */
 
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -101,7 +103,7 @@ static int global_error_handler(Display *disp, XErrorEvent *error) {
 static jlong openDisplay(JNIEnv *env) {
 	Display *display_connection = XOpenDisplay(NULL);
 	if (display_connection == NULL) {
-		throwException(env, "Could not open X display connection");
+		throwException(env, "Could not open X display connection, Hello World from wqvi");
 		return (intptr_t)NULL;
 	}
 	return (intptr_t)display_connection;
