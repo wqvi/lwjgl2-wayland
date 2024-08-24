@@ -103,8 +103,9 @@ static int global_error_handler(Display *disp, XErrorEvent *error) {
 static jlong openDisplay(JNIEnv *env) {
 	Display *display_connection = XOpenDisplay(NULL);
 	if (display_connection == NULL) {
-		throwException(env, "Could not open X display connection, Hello World from wqvi");
-		return (intptr_t)NULL;
+		//throwException(env, "Could not open X display connection, Hello World from wqvi");
+		//return (intptr_t)NULL;
+		return 1;
 	}
 	return (intptr_t)display_connection;
 }
@@ -149,18 +150,13 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_sync(JNIEnv *env, jcla
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetDefaultScreen(JNIEnv *env, jclass unused, jlong display_ptr) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
-	return XDefaultScreen(disp);
+	return 1; // aka initialized in OpenDisplay
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nInternAtom(JNIEnv *env, jclass unused, jlong display_ptr, jstring atom_name_obj, jboolean only_if_exists) {
 	Display *disp = (Display *)(intptr_t)display_ptr;
 	char *atom_name = GetStringNativeChars(env, atom_name_obj);
-	if (atom_name == NULL)
-		return 0;
-	Atom atom = XInternAtom(disp, atom_name, only_if_exists ? True : False);
-	free(atom_name);
-	return atom;
+	return 1;
 }
 
 static void setDecorations(Display *disp, Window window, int dec) {
@@ -209,7 +205,20 @@ static void setClassHint(Display *disp, Window window, jlong wm_name, jlong wm_c
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_openDisplay(JNIEnv *env, jclass clazz) {
-	return openDisplay(env);
+	static int initialized = 0;
+	if (initialized) {
+		printfDebugJava(env, "GLFW already initialized.");
+		return initialized;
+	}
+
+	if (!glfwInit()) {
+		throwException(env, "Failed to initialize GLFW");
+		return initialized;
+	}
+
+	initialized = 1;
+
+	return initialized;
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_closeDisplay(JNIEnv *env, jclass clazz, jlong display) {
@@ -226,8 +235,9 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplayPeerInfo_initDrawable(J
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplayPeerInfo_initDefaultPeerInfo(JNIEnv *env, jclass clazz, jlong display, jint screen, jobject peer_info_handle, jobject pixel_format) {
-	Display *disp = (Display *)(intptr_t)display;
-	initPeerInfo(env, peer_info_handle, disp, screen, pixel_format, true, GLX_WINDOW_BIT, true, false);
+	/*Display *disp = (Display *)(intptr_t)display;
+	initPeerInfo(env, peer_info_handle, disp, screen, pixel_format, true, GLX_WINDOW_BIT, true, false);*/
+	puts("Initialize gl here.");
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetTitle(JNIEnv * env, jclass clazz, jlong display, jlong window_ptr, jlong title, jint len) {
@@ -529,32 +539,37 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetInputFocus(JNIEnv 
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv *env, jclass clazz, jlong display, jint screen, jobject peer_info_handle, jobject mode, jint window_mode, jint x, jint y, jboolean undecorated, jlong parent_handle, jboolean resizable) {
-	Display *disp = (Display *)(intptr_t)display;
-	X11PeerInfo *peer_info = (*env)->GetDirectBufferAddress(env, peer_info_handle);
+	if (!display) {
+		throwException(env, "GLFW is not initialized");
+		return 0;
+	}
+	
+	puts("Failed to create window");
+	return 0;
+
+	/*X11PeerInfo *peer_info = (*env)->GetDirectBufferAddress(env, peer_info_handle);
 	GLXFBConfig *fb_config = NULL;
 	if (peer_info->glx13) {
 		fb_config = getFBConfigFromPeerInfo(env, peer_info);
 		if (fb_config == NULL)
 			return 0;
-	}
+	}*/
 	jclass cls_displayMode = (*env)->GetObjectClass(env, mode);
 	jfieldID fid_width = (*env)->GetFieldID(env, cls_displayMode, "width", "I");
 	jfieldID fid_height = (*env)->GetFieldID(env, cls_displayMode, "height", "I");
 	int width = (*env)->GetIntField(env, mode, fid_width);
 	int height = (*env)->GetIntField(env, mode, fid_height);
-	Window win = createWindow(env, disp, screen, window_mode, peer_info, x, y, width, height, undecorated, parent_handle, resizable);
-	if ((*env)->ExceptionOccurred(env)) {
+	GLFWwindow *win = glfwCreateWindow(width, height, "lwjgl2-wayland", NULL, NULL);
+	if (!win) {
+		throwException(env, "Failed to create GLFW window");
+		glfwTerminate();
 		return 0;
 	}
-	if (peer_info->glx13) {
-		glx_window = lwjgl_glXCreateWindow(disp, *fb_config, win, NULL);
-		XFree(fb_config);
-	}
-	if (!checkXError(env, disp)) {
-		lwjgl_glXDestroyWindow(disp, glx_window);
-		destroyWindow(env, disp, win);
-	}
-	return win;
+	puts("Created GLFW window");
+	//if (peer_info->glx13) {
+		//glx_window = lwjgl_glXCreateWindow(disp, *fb_config, win, NULL);
+		//XFree(fb_config);}
+	return (intptr_t)win;
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetWindowSize(JNIEnv *env, jclass clazz, jlong display, jlong window_ptr, jint width, jint height, jboolean resizable) {
