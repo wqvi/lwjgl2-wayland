@@ -276,6 +276,7 @@ static void dumpVisualInfo(JNIEnv *env, Display *display, GLXExtensions *extensi
 }
 
 bool initPeerInfo(JNIEnv *env, jobject peer_info_handle, Display *display, int screen, jobject pixel_format, bool use_display_bpp, int drawable_type, bool double_buffered, bool force_glx13) {
+	return true;
 	if ((*env)->GetDirectBufferCapacity(env, peer_info_handle) < sizeof(X11PeerInfo)) {
 		throwException(env, "Handle too small");
 		return false;
