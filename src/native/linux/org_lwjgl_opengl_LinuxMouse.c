@@ -39,6 +39,8 @@
  * @version $Revision: 2399 $
  */
 
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -52,15 +54,27 @@ static void getWindowAttributes(jlong display_ptr, jlong window_ptr, XWindowAttr
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetWindowHeight(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
-	XWindowAttributes window_attributes;
-	getWindowAttributes(display_ptr, window_ptr, &window_attributes);
-	return window_attributes.height;
+	if (!display_ptr) {
+		throwException(env, "GLFW is not initialized");
+		return -1;
+	}
+	GLFWwindow *window = (GLFWwindow *)window_ptr;
+	int width;
+	int height;
+	glfwGetWindowSize(window, &width, &height);
+	return height;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetWindowWidth(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
-	XWindowAttributes window_attributes;
-	getWindowAttributes(display_ptr, window_ptr, &window_attributes);
-	return window_attributes.width;
+	if (!display_ptr) {
+		throwException(env, "GLFW is not initialized");
+		return -1;
+	}
+	GLFWwindow *window = (GLFWwindow *)window_ptr;
+	int width;
+	int height;
+	glfwGetWindowSize(window, &width, &height);
+	return width;
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxMouse_nWarpCursor(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr, jint x, jint y) {
@@ -70,7 +84,7 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxMouse_nWarpCursor(JNIEnv *env,
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxMouse_nQueryPointer(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr, jobject result_buffer) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
+	/*Display *disp = (Display *)(intptr_t)display_ptr;
 	Window win = (Window)window_ptr;
 	Window root_return, child_return;
 	int root_x, root_y, win_x, win_y;
@@ -87,7 +101,9 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxMouse_nQueryPointer(JNIEnv *e
 	result[1] = root_y;
 	result[2] = win_x;
 	result[3] = win_y;
-	return root_return;
+	return root_return;*/
+	// query pointer? what is this??
+	return 0;
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxMouse_nSendWarpEvent(JNIEnv *env, jclass unusued, jlong display_ptr, jlong window_ptr, jlong warp_atom_ptr, jint x, jint y) {
@@ -105,7 +121,7 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxMouse_nSendWarpEvent(JNIEnv *e
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetButtonCount(JNIEnv *env, jclass unused, jlong display_ptr) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
+	/*Display *disp = (Display *)(intptr_t)display_ptr;
 
 	int count = 256;
 
@@ -114,5 +130,7 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetButtonCount(JNIEnv *
 
 	free(pointer_map);
 
-	return count;
+	return count;*/
+	// idk what this does so I am going to assume you have two mouse buttons
+	return 2; 
 }

@@ -403,8 +403,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetAvailableD
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSwitchDisplayMode(JNIEnv *env, jclass clazz, jlong display, jint screen, jint extension, jobject mode) {
-	Display *disp = (Display *)(intptr_t)display;
-	switchDisplayMode(env, disp, screen, extension, mode);
+	printfDebugJava(env, "There should not be a need to switch display modes.");
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetGammaRampLength(JNIEnv *env, jclass clazz, jlong display_ptr, jint screen) {

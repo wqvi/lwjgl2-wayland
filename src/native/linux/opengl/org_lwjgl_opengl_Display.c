@@ -71,6 +71,7 @@ typedef struct {
 #define MWM_HINTS_DECORATIONS   (1L << 1)
 
 static GLXWindow glx_window = None;
+static GLFWwindow *glfw_window = NULL;
 
 static Colormap cmap;
 static int current_depth;
@@ -222,8 +223,7 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_openDisplay(JNIEnv *e
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_closeDisplay(JNIEnv *env, jclass clazz, jlong display) {
-	Display *disp = (Display *)(intptr_t)display;
-	XCloseDisplay(disp);
+	glfwTerminate();
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplayPeerInfo_initDrawable(JNIEnv *env, jclass clazz, jlong window, jobject peer_info_handle) {
@@ -241,15 +241,13 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplayPeerInfo_initDefaultPee
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetTitle(JNIEnv * env, jclass clazz, jlong display, jlong window_ptr, jlong title, jint len) {
-	Display *disp = (Display *)(intptr_t)display;
-	Window window = (Window)window_ptr;
-	setWindowTitle(disp, window, title, len);
+	GLFWwindow *window = (GLFWwindow *)window_ptr;
+	const char *str = title;
+	glfwSetWindowTitle(window, str);
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetClassHint(JNIEnv * env, jclass clazz, jlong display, jlong window_ptr, jlong wm_name, jlong wm_class) {
-	Display *disp = (Display *)(intptr_t)display;
-	Window window = (Window)window_ptr;
-	setClassHint(disp, window, wm_name, wm_class);
+	// do nothing
 }
 
 static void destroyWindow(JNIEnv *env, Display *disp, Window window) {
@@ -304,8 +302,7 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_synchronize(JNIEnv *en
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_getRootWindow(JNIEnv *env, jclass clazz, jlong display, jint screen) {
-	Display *disp = (Display *)(intptr_t)display;
-	return RootWindow(disp, screen);
+	return glfw_window;
 }
 
 static Window getCurrentWindow(JNIEnv *env, jlong display_ptr, jlong window_ptr) {
@@ -332,43 +329,39 @@ static Window getCurrentWindow(JNIEnv *env, jlong display_ptr, jlong window_ptr)
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetX(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
-	Window win = getCurrentWindow(env, display_ptr, window_ptr);
-
-	XWindowAttributes win_attribs;
-	XGetWindowAttributes(disp, win, &win_attribs);
-
-	return win_attribs.x;
+	return 0;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetY(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
-	Window win = getCurrentWindow(env, display_ptr, window_ptr);
-
-	XWindowAttributes win_attribs;
-	XGetWindowAttributes(disp, win, &win_attribs);
-
-	return win_attribs.y;
+	return 0;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetWidth(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
-	Window win = (Window)window_ptr;
-	XWindowAttributes win_attribs;
-
-	XGetWindowAttributes(disp, win, &win_attribs);
-
-	return win_attribs.width;
+	if (!display_ptr) {
+		throwException(env, "GLFW is not initialized");
+		return -1;
+	}
+	GLFWmonitor *primary = glfwGetPrimaryMonitor();
+	int x;
+	int y;
+	int width;
+	int height;
+	glfwGetMonitorWorkarea(primary, &x, &y, &width, &height);
+	return width;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetHeight(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
-	Window win = (Window)window_ptr;
-	XWindowAttributes win_attribs;
-
-	XGetWindowAttributes(disp, win, &win_attribs);
-
-	return win_attribs.height;
+	if (!display_ptr) {
+		throwException(env, "GLFW is not initialized");
+		return -1;
+	}
+	GLFWmonitor *primary = glfwGetPrimaryMonitor();
+	int x;
+	int y;
+	int width;
+	int height;
+	glfwGetMonitorWorkarea(primary, &x, &y, &width, &height);
+	return height;
 }
 
 static void updateWindowHints(JNIEnv *env, Display *disp, Window window) {
@@ -462,16 +455,16 @@ static Window createWindow(JNIEnv* env, Display *disp, int screen, jint window_m
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_reparentWindow(JNIEnv *env, jclass unused, jlong display, jlong window_ptr, jlong parent_ptr, jint x, jint y) {
-	Display *disp = (Display *)(intptr_t)display;
+	/*Display *disp = (Display *)(intptr_t)display;
 	Window window = (Window)window_ptr;
 	Window parent = (Window)parent_ptr;
-	XReparentWindow(disp, window, parent, x, y);
+	XReparentWindow(disp, window, parent, x, y);*/
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_mapRaised(JNIEnv *env, jclass unused, jlong display, jlong window_ptr) {
-	Display *disp = (Display *)(intptr_t)display;
+	/*Display *disp = (Display *)(intptr_t)display;
 	Window window = (Window)window_ptr;
-	XMapRaised(disp, window);
+	XMapRaised(disp, window);*/
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_getParentWindow(JNIEnv *env, jclass unused, jlong display, jlong window_ptr) {
@@ -544,9 +537,6 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 		return 0;
 	}
 	
-	puts("Failed to create window");
-	return 0;
-
 	/*X11PeerInfo *peer_info = (*env)->GetDirectBufferAddress(env, peer_info_handle);
 	GLXFBConfig *fb_config = NULL;
 	if (peer_info->glx13) {
@@ -565,10 +555,12 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 		glfwTerminate();
 		return 0;
 	}
-	puts("Created GLFW window");
+	glfw_window = win;
+	printfDebugJava(env, "Created GLFW window.");
 	//if (peer_info->glx13) {
 		//glx_window = lwjgl_glXCreateWindow(disp, *fb_config, win, NULL);
 		//XFree(fb_config);}
+	printf("win ptr = %p\n", (void *)win);
 	return (intptr_t)win;
 }
 
@@ -579,9 +571,11 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetWindowSize(JNIEnv 
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nDestroyWindow(JNIEnv *env, jclass clazz, jlong display, jlong window_ptr) {
-	Display *disp = (Display *)(intptr_t)display;
+	/*Display *disp = (Display *)(intptr_t)display;
 	Window window = (Window)window_ptr;
-	destroyWindow(env, disp, window);
+	destroyWindow(env, disp, window);*/
+	GLFWwindow *window = (GLFWwindow *)window_ptr;
+	glfwDestroyWindow(window);
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nLockAWT(JNIEnv *env, jclass clazz) {
@@ -607,27 +601,14 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nUnlockAWT(JNIEnv *env
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetWindowIcon
   (JNIEnv *env, jclass clazz, jlong display, jlong window_ptr, jobject icons_buffer, jint icons_buffer_size)
 {
-	Display *disp = (Display *)(intptr_t)display;
-	Window window = (Window)window_ptr;
-	const unsigned char *icons_char_buffer = (const unsigned char *)(*env)->GetDirectBufferAddress(env, icons_buffer);
-	
-	int length = icons_buffer_size/4;
-	unsigned long icons_long_buffer[length];
-	int i = 0;
-
-	// copy byte array to long array
-	for (i = 0; i < icons_buffer_size; i += 4) {
-		unsigned long argb = (icons_char_buffer[i] << 24) | 
-							(icons_char_buffer[i+1] << 16) | 
-							(icons_char_buffer[i+2] << 8) | 
-							(icons_char_buffer[i+3]);
-		icons_long_buffer[i/4] = argb;
+	if (!display) {
+		throwException(env, "GLFW is not initialized");
+		return;
 	}
 
-	XChangeProperty(disp, window,
-					XInternAtom(disp, "_NET_WM_ICON", False),
-					XInternAtom(disp, "CARDINAL", False),
-					32, PropModeReplace, (const unsigned char*) icons_long_buffer, length);
+	printfDebugJava(env, "I use wqvi/glfw-patch for the GLFW impl of this.");
+	printfDebugJava(env, "That library doesn't support setting icons.");
+	printfDebugJava(env, "That is just a quirk of wayland, also probably due to my minimalist setup.");
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nUngrabKeyboard(JNIEnv *env, jclass unused, jlong display_ptr) {
@@ -664,14 +645,14 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nUngrabPointer(JNIEnv 
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nDefineCursor(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr, jlong cursor_ptr) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
+	/*Display *disp = (Display *)(intptr_t)display_ptr;
 	Window win = (Window)window_ptr;
 	Cursor cursor = (Cursor)cursor_ptr;
-	XDefineCursor(disp, win, cursor);
+	XDefineCursor(disp, win, cursor);*/
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateBlankCursor(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
+	/*Display *disp = (Display *)(intptr_t)display_ptr;
 	Window win = (Window)window_ptr;
 	unsigned int best_width, best_height;
 	if (XQueryBestCursor(disp, win, 1, 1, &best_width, &best_height) == 0) {
@@ -687,7 +668,8 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateBlankCursor(JN
 	XColor dummy_color;
 	Cursor cursor = XCreatePixmapCursor(disp, mask, mask, &dummy_color, &dummy_color, 0, 0);
 	XFreePixmap(disp, mask);
-	return cursor;
+	return cursor;*/
+	return 0;
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nIconifyWindow(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr, jint screen) {

@@ -132,6 +132,7 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_nSetSwap
 
 JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_nCreate
   (JNIEnv *env , jclass clazz, jobject peer_handle, jobject attribs, jobject shared_context_handle) {
+  	puts("waow");
 	jobject context_handle = newJavaManagedByteBuffer(env, sizeof(X11Context));
 	if (context_handle == NULL) {
 		throwException(env, "Could not allocate handle buffer");
