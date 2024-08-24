@@ -39,6 +39,8 @@
  * @version $Revision$
  */
 
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/extensions/xf86vmode.h>
@@ -107,15 +109,11 @@ static bool isXF86VidModeSupported(JNIEnv *env, Display *disp) {
 }
 	
 JNIEXPORT jboolean JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nIsXrandrSupported(JNIEnv *env, jclass unused, jlong display) {
-	Display *disp = (Display *)(intptr_t)display;
-	jboolean result = isXrandrSupported(env, disp) ? JNI_TRUE : JNI_FALSE;
-	return result;
+	return JNI_FALSE;
 }
 
 JNIEXPORT jboolean JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nIsXF86VidModeSupported(JNIEnv *env, jclass unused, jlong display) {
-	Display *disp = (Display *)(intptr_t)display;
-	jboolean result = isXF86VidModeSupported(env, disp) ? JNI_TRUE : JNI_FALSE;
-	return result;
+	return JNI_TRUE;
 }
 
 static mode_info *getXrandrDisplayModes(Display *disp, int screen, int *num_modes) {
@@ -133,6 +131,7 @@ static mode_info *getXrandrDisplayModes(Display *disp, int screen, int *num_mode
 		for (j = 0; j < num_randr_rates; j++) {
 			if (list_size <= mode_index) {
 				list_size += 1;
+					// we definitely support XF86VidMode
 				avail_modes = (mode_info *)realloc(avail_modes, sizeof(mode_info)*list_size);
 				if (avail_modes == NULL)
 					return NULL;
@@ -288,19 +287,16 @@ JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nConvertToNativeRam
 }
 
 JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetCurrentGammaRamp(JNIEnv *env, jclass unused, jlong display, jint screen) {
-	Display *disp = (Display *)(intptr_t)display;
-	int ramp_size = getGammaRampLengthOfDisplay(env, disp, screen);
-	jobject ramp_buffer = newJavaManagedByteBuffer(env, sizeof(unsigned short)*3*ramp_size);
+	size_t mem_size = sizeof(unsigned short) * 3 * 0;
+
+	jobject ramp_buffer = newJavaManagedByteBuffer(env, mem_size);
 	if (ramp_buffer == NULL) {
 		throwException(env, "Could not allocate gamma ramp buffer");
 		return NULL;
 	}
-	unsigned short *ramp = (unsigned short *)(*env)->GetDirectBufferAddress(env, ramp_buffer);
-	if (!XF86VidModeGetGammaRamp(disp, screen, ramp_size, ramp,
-				ramp + ramp_size, ramp + ramp_size*2)) {
-		throwException(env, "Could not get the current gamma ramp");
-		return NULL;
-	}
+
+	printfDebugJava(env, "Gamma control is a privileged wayland protocol.");
+
 	return ramp_buffer;
 }
 
@@ -385,13 +381,25 @@ static jobject getCurrentXRandrMode(JNIEnv * env, Display *disp, int screen) {
 }
 
 JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetCurrentXRandrMode(JNIEnv *env, jclass unused, jlong display, jint screen) {
-	Display *disp = (Display *)(intptr_t)display;
-	return getCurrentXRandrMode(env, disp, screen);
+	jclass displayModeClass = (*env)->FindClass(env, "org/lwjgl/opengl/DisplayMode");
+	jmethodID displayModeConstructor = (*env)->GetMethodID(env, displayModeClass, "<init>", "(IIII)V");
+
+	jobject displayMode = (*env)->NewObject(env, displayModeClass, displayModeConstructor, 640, 480, 1, 60);
+	return displayMode;
 }
 
 JNIEXPORT jobjectArray JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetAvailableDisplayModes(JNIEnv *env, jclass clazz, jlong display, jint screen, jint extension) {
-	Display *disp = (Display *)(intptr_t)display;
-	return getAvailableDisplayModes(env, disp, screen, extension);
+	jclass displayModeClass = (*env)->FindClass(env, "org/lwjgl/opengl/DisplayMode");
+	jobjectArray ret = (*env)->NewObjectArray(env, 1, displayModeClass, NULL);
+	jmethodID displayModeConstructor = (*env)->GetMethodID(env, displayModeClass, "<init>", "(IIII)V");
+
+	GLFWmonitor *primary = glfwGetPrimaryMonitor();
+	const GLFWvidmode *mode = glfwGetVideoMode(primary);
+	int bbp = mode->redBits + mode->greenBits + mode->blueBits;
+
+	jobject displayMode = (*env)->NewObject(env, displayModeClass, displayModeConstructor, mode->width, mode->height, bbp, mode->refreshRate);
+	(*env)->SetObjectArrayElement(env, ret, 0, displayMode);
+	return ret;
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSwitchDisplayMode(JNIEnv *env, jclass clazz, jlong display, jint screen, jint extension, jobject mode) {
