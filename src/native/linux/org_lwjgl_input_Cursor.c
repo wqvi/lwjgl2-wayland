@@ -110,7 +110,7 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateCursor
 	XcursorImagesDestroy(cursor_images);
 	return cursor;*/
 	printfDebugJava(env, "Cursor setting hasn't been implemented just yet.");
-	return NULL;
+	return 0;
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nDestroyCursor
