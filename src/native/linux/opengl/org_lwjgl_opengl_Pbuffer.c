@@ -42,7 +42,7 @@
 #include <stdlib.h>
 #include "org_lwjgl_opengl_LinuxPbufferPeerInfo.h"
 #include "org_lwjgl_opengl_Pbuffer.h"
-#include "extgl.h"
+#include "extgl_glx.h"
 #include "context.h"
 #include "common_tools.h"
 

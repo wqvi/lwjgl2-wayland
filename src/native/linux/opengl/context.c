@@ -43,7 +43,6 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include "extgl_glx.h"
 #include "context.h"
 
 XVisualInfo *getVisualInfoFromPeerInfo(JNIEnv *env, X11PeerInfo *peer_info) {

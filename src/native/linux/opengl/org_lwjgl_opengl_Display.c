@@ -39,6 +39,7 @@
  * @version $Revision$
  */
 
+#include <GL/glew.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <X11/X.h>
@@ -51,8 +52,6 @@
 #include <jni.h>
 #include <jawt_md.h>
 #include "common_tools.h"
-#include "extgl.h"
-#include "extgl_glx.h"
 #include "context.h"
 #include "org_lwjgl_opengl_LinuxDisplay.h"
 #include "org_lwjgl_opengl_LinuxDisplayPeerInfo.h"
@@ -242,7 +241,7 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplayPeerInfo_initDefaultPee
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetTitle(JNIEnv * env, jclass clazz, jlong display, jlong window_ptr, jlong title, jint len) {
 	GLFWwindow *window = (GLFWwindow *)window_ptr;
-	const char *str = title;
+	const char *str = (const char *)title;
 	glfwSetWindowTitle(window, str);
 }
 
@@ -302,7 +301,7 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_synchronize(JNIEnv *en
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_getRootWindow(JNIEnv *env, jclass clazz, jlong display, jint screen) {
-	return glfw_window;
+	return (intptr_t)glfw_window;
 }
 
 static Window getCurrentWindow(JNIEnv *env, jlong display_ptr, jlong window_ptr) {
@@ -537,18 +536,14 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 		return 0;
 	}
 	
-	/*X11PeerInfo *peer_info = (*env)->GetDirectBufferAddress(env, peer_info_handle);
-	GLXFBConfig *fb_config = NULL;
-	if (peer_info->glx13) {
-		fb_config = getFBConfigFromPeerInfo(env, peer_info);
-		if (fb_config == NULL)
-			return 0;
-	}*/
 	jclass cls_displayMode = (*env)->GetObjectClass(env, mode);
 	jfieldID fid_width = (*env)->GetFieldID(env, cls_displayMode, "width", "I");
 	jfieldID fid_height = (*env)->GetFieldID(env, cls_displayMode, "height", "I");
 	int width = (*env)->GetIntField(env, mode, fid_width);
 	int height = (*env)->GetIntField(env, mode, fid_height);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	GLFWwindow *win = glfwCreateWindow(width, height, "lwjgl2-wayland", NULL, NULL);
 	if (!win) {
 		throwException(env, "Failed to create GLFW window");
@@ -557,10 +552,13 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 	}
 	glfw_window = win;
 	printfDebugJava(env, "Created GLFW window.");
-	//if (peer_info->glx13) {
-		//glx_window = lwjgl_glXCreateWindow(disp, *fb_config, win, NULL);
-		//XFree(fb_config);}
-	printf("win ptr = %p\n", (void *)win);
+	glewExperimental = GL_TRUE;
+	if (!glewInit()) {
+		throwException(env, "Failed to initialize glew");
+		glfwTerminate();
+		return 0;
+	}
+	puts("Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow");
 	return (intptr_t)win;
 }
 

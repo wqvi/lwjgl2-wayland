@@ -42,7 +42,6 @@
 #include "common_tools.h"
 #include "context.h"
 
-#include "extgl.h"
 #include "extgl_glx.h"
 
 /* NV_present_video functions */
