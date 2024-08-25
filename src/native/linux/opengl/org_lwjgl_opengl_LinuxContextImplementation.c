@@ -132,13 +132,15 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_nSetSwap
 
 JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_nCreate
   (JNIEnv *env , jclass clazz, jobject peer_handle, jobject attribs, jobject shared_context_handle) {
-  	puts("waow");
+  	printfDebugJava(env, "Creating linux opengl context");
+	puts("Java_org_lwjgl_opengl_LinuxContextImplementation_nCreate");
 	jobject context_handle = newJavaManagedByteBuffer(env, sizeof(X11Context));
 	if (context_handle == NULL) {
 		throwException(env, "Could not allocate handle buffer");
 		return NULL;
 	}
-	X11PeerInfo *peer_info = (*env)->GetDirectBufferAddress(env, peer_handle);
+	return context_handle;
+	/*X11PeerInfo *peer_info = (*env)->GetDirectBufferAddress(env, peer_handle);
 	X11Context *context_info = (*env)->GetDirectBufferAddress(env, context_handle);
 	GLXExtensions extension_flags;
 	if (!extgl_InitGLX(peer_info->display, peer_info->screen, &extension_flags)) {
@@ -156,7 +158,7 @@ JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_nCrea
 		createContextGLX(env, peer_info, context_info, shared_context);
 	}
 	context_info->extension_flags = extension_flags;
-	return context_handle;
+	return context_handle;*/
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_nDestroy
@@ -181,7 +183,7 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_nRelease
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_nMakeCurrent
   (JNIEnv *env, jclass clazz, jobject peer_info_handle, jobject context_handle) {
-	X11PeerInfo *peer_info = (*env)->GetDirectBufferAddress(env, peer_info_handle);
+	/*X11PeerInfo *peer_info = (*env)->GetDirectBufferAddress(env, peer_info_handle);
 	X11Context *context_info = (*env)->GetDirectBufferAddress(env, context_handle);
 	Bool result;
 	if (peer_info->glx13) {
@@ -190,7 +192,7 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_nMakeCur
 		result = lwjgl_glXMakeCurrent(peer_info->display, peer_info->drawable, context_info->context);
 	}
 	if (!result)
-		throwException(env, "Could not make context current");
+		throwException(env, "Could not make context current");*/
 }
 
 JNIEXPORT jboolean JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_nIsCurrent
