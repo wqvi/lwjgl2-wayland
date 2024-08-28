@@ -43,14 +43,17 @@
 #include <jni.h>
 #include "common_tools.h"
 #include "org_lwjgl_opengl_LinuxEvent.h"
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
+extern GLFWwindow *context_window;
 
 JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxEvent_createEventBuffer(JNIEnv *env, jclass unused) {
 	return newJavaManagedByteBuffer(env, sizeof(XEvent));
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_getPending(JNIEnv *env, jclass unused, jlong display_ptr) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
-	return XPending(disp);
+	return glfwWindowShouldClose(context_window);
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxEvent_nSetWindow(JNIEnv *env, jclass unused, jobject event_buffer, jlong window_ptr) {

@@ -69,6 +69,8 @@ typedef struct {
 
 #define MWM_HINTS_DECORATIONS   (1L << 1)
 
+GLFWwindow *context_window;
+
 static GLXWindow glx_window = None;
 static GLFWwindow *glfw_window = NULL;
 
@@ -551,6 +553,12 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 		return 0;
 	}
 	glfw_window = win;
+	// cursed hack to get EGL to be "created"
+	// it's created here but well here we are in 2024
+	// trying to hack in Wayland support to ancient minecraft versions
+	// using high level libraries because I don't
+	// want to write all of the wayland code myself or the EGL code
+	context_window = win;
 	printfDebugJava(env, "Created GLFW window.");
 	glewExperimental = GL_TRUE;
 	if (!glewInit()) {
@@ -558,7 +566,7 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 		glfwTerminate();
 		return 0;
 	}
-	puts("Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow");
+	glfwMakeContextCurrent(win);
 	return (intptr_t)win;
 }
 

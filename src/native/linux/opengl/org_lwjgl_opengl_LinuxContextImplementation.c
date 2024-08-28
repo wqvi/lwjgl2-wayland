@@ -45,6 +45,10 @@
 #include "extgl_glx.h"
 #include "context.h"
 #include "common_tools.h"
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
+extern GLFWwindow *context_window;
 
 typedef struct {
 	GLXExtensions extension_flags;
@@ -73,7 +77,7 @@ static bool checkContext(JNIEnv *env, Display *display, GLXContext context) {
 }
 
 static void createContextGLX13(JNIEnv *env, X11PeerInfo *peer_info, X11Context *context_info, jobject attribs, GLXContext shared_context) {
-	GLXFBConfig *config = getFBConfigFromPeerInfo(env, peer_info);
+	/*GLXFBConfig *config = getFBConfigFromPeerInfo(env, peer_info);
 	if (config == NULL)
 		return;
 	GLXContext context;
@@ -92,18 +96,18 @@ static void createContextGLX13(JNIEnv *env, X11PeerInfo *peer_info, X11Context *
 	XFree(config);
 	if (!checkContext(env, peer_info->display, context))
 		return;
-	context_info->context = context;
+	context_info->context = context;*/
 }
 
 static void createContextGLX(JNIEnv *env, X11PeerInfo *peer_info, X11Context *context_info, GLXContext shared_context) {
-	XVisualInfo *vis_info = getVisualInfoFromPeerInfo(env, peer_info);
+	/*XVisualInfo *vis_info = getVisualInfoFromPeerInfo(env, peer_info);
 	if (vis_info == NULL)
 		return;
 	GLXContext context = lwjgl_glXCreateContext(peer_info->display, vis_info, shared_context, True);
 	XFree(vis_info);
 	if (!checkContext(env, peer_info->display, context))
 		return;
-	context_info->context = context;
+	context_info->context = context;*/
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_getGLXContext(JNIEnv *env, jclass clazz, jobject context_handle) {
@@ -112,14 +116,15 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_getGLXC
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_getDisplay(JNIEnv *env, jclass clazz, jobject peer_info_handle) {
-    X11PeerInfo *peer_info = (*env)->GetDirectBufferAddress(env, peer_info_handle);
-    return (intptr_t)peer_info->display;
+    /*X11PeerInfo *peer_info = (*env)->GetDirectBufferAddress(env, peer_info_handle);
+    return (intptr_t)peer_info->display;*/
+	return 1;
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_nSetSwapInterval
   (JNIEnv *env, jclass clazz, jobject peer_info_handle, jobject context_handle, jint value)
 {
-	X11PeerInfo *peer_info = (*env)->GetDirectBufferAddress(env, peer_info_handle);
+	/*X11PeerInfo *peer_info = (*env)->GetDirectBufferAddress(env, peer_info_handle);
 	X11Context *context_info = (*env)->GetDirectBufferAddress(env, context_handle);
 
 	if (context_info->extension_flags.GLX_EXT_swap_control) {
@@ -127,18 +132,18 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_nSetSwap
 	}
 	else if (context_info->extension_flags.GLX_SGI_swap_control) {
 		lwjgl_glXSwapIntervalSGI(value);
-	}
+	}*/
 }
 
 JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_nCreate
   (JNIEnv *env , jclass clazz, jobject peer_handle, jobject attribs, jobject shared_context_handle) {
   	printfDebugJava(env, "Creating linux opengl context");
-	puts("Java_org_lwjgl_opengl_LinuxContextImplementation_nCreate");
 	jobject context_handle = newJavaManagedByteBuffer(env, sizeof(X11Context));
 	if (context_handle == NULL) {
 		throwException(env, "Could not allocate handle buffer");
 		return NULL;
 	}
+	X11Context *context_info = (*env)->GetDirectBufferAddress(env, context_handle);
 	return context_handle;
 	/*X11PeerInfo *peer_info = (*env)->GetDirectBufferAddress(env, peer_handle);
 	X11Context *context_info = (*env)->GetDirectBufferAddress(env, context_handle);
