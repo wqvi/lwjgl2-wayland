@@ -40,8 +40,9 @@
  */
 
 #include <GL/glew.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define NO_SDL_GLEXT
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -69,10 +70,10 @@ typedef struct {
 
 #define MWM_HINTS_DECORATIONS   (1L << 1)
 
-GLFWwindow *context_window;
+SDL_Window *context_window;
+static SDL_GLContext context;
 
 static GLXWindow glx_window = None;
-static GLFWwindow *glfw_window = NULL;
 
 static Colormap cmap;
 static int current_depth;
@@ -209,12 +210,12 @@ static void setClassHint(Display *disp, Window window, jlong wm_name, jlong wm_c
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_openDisplay(JNIEnv *env, jclass clazz) {
 	static int initialized = 0;
 	if (initialized) {
-		printfDebugJava(env, "GLFW already initialized.");
+		printfDebugJava(env, "SDL already initialized.");
 		return initialized;
 	}
 
-	if (!glfwInit()) {
-		throwException(env, "Failed to initialize GLFW");
+	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
+		throwException(env, "Failed to initialize SDL");
 		return initialized;
 	}
 
@@ -224,7 +225,7 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_openDisplay(JNIEnv *e
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_closeDisplay(JNIEnv *env, jclass clazz, jlong display) {
-	glfwTerminate();
+	SDL_Quit();
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplayPeerInfo_initDrawable(JNIEnv *env, jclass clazz, jlong window, jobject peer_info_handle) {
@@ -241,9 +242,9 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplayPeerInfo_initDefaultPee
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetTitle(JNIEnv * env, jclass clazz, jlong display, jlong window_ptr, jlong title, jint len) {
-	GLFWwindow *window = (GLFWwindow *)window_ptr;
+	SDL_Window *window = (SDL_Window *)window_ptr;
 	const char *str = (const char *)title;
-	glfwSetWindowTitle(window, str);
+	SDL_SetWindowTitle(window, str);
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetClassHint(JNIEnv * env, jclass clazz, jlong display, jlong window_ptr, jlong wm_name, jlong wm_class) {
@@ -302,7 +303,7 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_synchronize(JNIEnv *en
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_getRootWindow(JNIEnv *env, jclass clazz, jlong display, jint screen) {
-	return (intptr_t)glfw_window;
+	return (intptr_t)context_window;
 }
 
 static Window getCurrentWindow(JNIEnv *env, jlong display_ptr, jlong window_ptr) {
@@ -338,30 +339,22 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetY(JNIEnv *env, jcl
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetWidth(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
 	if (!display_ptr) {
-		throwException(env, "GLFW is not initialized");
+		throwException(env, "SDL is not initialized");
 		return -1;
 	}
-	GLFWmonitor *primary = glfwGetPrimaryMonitor();
-	int x;
-	int y;
-	int width;
-	int height;
-	glfwGetMonitorWorkarea(primary, &x, &y, &width, &height);
-	return width;
+	SDL_DisplayMode dm;
+	SDL_GetCurrentDisplayMode(0, &dm);
+	return dm.w;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetHeight(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
 	if (!display_ptr) {
-		throwException(env, "GLFW is not initialized");
+		throwException(env, "SDL is not initialized");
 		return -1;
 	}
-	GLFWmonitor *primary = glfwGetPrimaryMonitor();
-	int x;
-	int y;
-	int width;
-	int height;
-	glfwGetMonitorWorkarea(primary, &x, &y, &width, &height);
-	return height;
+	SDL_DisplayMode dm;
+	SDL_GetCurrentDisplayMode(0, &dm);
+	return dm.w;
 }
 
 static void updateWindowHints(JNIEnv *env, Display *disp, Window window) {
@@ -414,7 +407,7 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_mapRaised(JNIEnv *env,
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_getParentWindow(JNIEnv *env, jclass unused, jlong display, jlong window_ptr) {
-	Display *disp = (Display *)(intptr_t)display;
+	/*Display *disp = (Display *)(intptr_t)display;
 	Window window = (Window)window_ptr;
 	Window root, parent;
 	Window *children;
@@ -425,11 +418,12 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_getParentWindow(JNIEn
 	}
 	if (children != NULL)
 		XFree(children);
-	return parent;
+	return parent;*/
+	return window_ptr;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_getChildCount(JNIEnv *env, jclass unused, jlong display, jlong window_ptr) {
-	Display *disp = (Display *)(intptr_t)display;
+	/*Display *disp = (Display *)(intptr_t)display;
 	Window window = (Window)window_ptr;
 	Window root, parent;
 	Window *children;
@@ -441,11 +435,12 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_getChildCount(JNIEnv *
 	if (children != NULL)
 		XFree(children);
 
-	return nchildren;
+	return nchildren;*/
+	return 0;
 }
 
 JNIEXPORT jboolean JNICALL Java_org_lwjgl_opengl_LinuxDisplay_hasProperty(JNIEnv *env, jclass unusued, jlong display, jlong window_ptr, jlong property_ptr) {
-	Display *disp = (Display *)(intptr_t)display;
+	/*Display *disp = (Display *)(intptr_t)display;
 	Window window = (Window)window_ptr;
 	Atom property = (Atom)property_ptr;
 	int num_props;
@@ -460,7 +455,8 @@ JNIEXPORT jboolean JNICALL Java_org_lwjgl_opengl_LinuxDisplay_hasProperty(JNIEnv
 		}
 	}
 	XFree(properties);
-	return result;
+	return result;*/
+	return JNI_TRUE;
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetInputFocus(JNIEnv *env, jclass unused, jlong display_ptr) {
@@ -488,31 +484,40 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 	jfieldID fid_height = (*env)->GetFieldID(env, cls_displayMode, "height", "I");
 	int width = (*env)->GetIntField(env, mode, fid_width);
 	int height = (*env)->GetIntField(env, mode, fid_height);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
-	GLFWwindow *win = glfwCreateWindow(width, height, "lwjgl2-wayland", NULL, NULL);
-	if (!win) {
-		throwException(env, "Failed to create GLFW window");
-		glfwTerminate();
+	context_window = SDL_CreateWindow("lwjgl2-sdl-wayland",
+			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+			width, height,
+			SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+
+	if (!context_window) {
+		throwException(env, "Failed to create SDL window");
+		SDL_Quit();
 		return 0;
 	}
-	glfw_window = win;
-	// cursed hack to get EGL to be "created"
-	// it's created here but well here we are in 2024
-	// trying to hack in Wayland support to ancient minecraft versions
-	// using high level libraries because I don't
-	// want to write all of the wayland code myself or the EGL code
-	context_window = win;
-	printfDebugJava(env, "Created GLFW window.");
+
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, SDL_TRUE);
+	context = SDL_GL_CreateContext(context_window);
+	if (!context) {
+		throwException(env, "Failed to create SDL GL context");
+		SDL_DestroyWindow(context_window);
+		SDL_Quit();
+		return 0;
+	}
+
+	SDL_GL_SetSwapInterval(1);
+
 	glewExperimental = GL_TRUE;
 	if (!glewInit()) {
 		throwException(env, "Failed to initialize glew");
-		glfwTerminate();
+		SDL_GL_DeleteContext(context);
+		SDL_DestroyWindow(context_window);
+		SDL_Quit();
 		return 0;
 	}
-	glfwMakeContextCurrent(win);
-	return (intptr_t)win;
+	return (intptr_t)context_window;
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetWindowSize(JNIEnv *env, jclass clazz, jlong display, jlong window_ptr, jint width, jint height, jboolean resizable) {
@@ -522,11 +527,9 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetWindowSize(JNIEnv 
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nDestroyWindow(JNIEnv *env, jclass clazz, jlong display, jlong window_ptr) {
-	/*Display *disp = (Display *)(intptr_t)display;
-	Window window = (Window)window_ptr;
-	destroyWindow(env, disp, window);*/
-	GLFWwindow *window = (GLFWwindow *)window_ptr;
-	glfwDestroyWindow(window);
+	// we cheat here as minecraft should only delete one window!
+	SDL_GL_DeleteContext(context);
+	SDL_DestroyWindow(context_window);
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nLockAWT(JNIEnv *env, jclass clazz) {
@@ -552,14 +555,6 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nUnlockAWT(JNIEnv *env
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetWindowIcon
   (JNIEnv *env, jclass clazz, jlong display, jlong window_ptr, jobject icons_buffer, jint icons_buffer_size)
 {
-	if (!display) {
-		throwException(env, "GLFW is not initialized");
-		return;
-	}
-
-	printfDebugJava(env, "I use wqvi/glfw-patch for the GLFW impl of this.");
-	printfDebugJava(env, "That library doesn't support setting icons.");
-	printfDebugJava(env, "That is just a quirk of wayland, also probably due to my minimalist setup.");
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nUngrabKeyboard(JNIEnv *env, jclass unused, jlong display_ptr) {
