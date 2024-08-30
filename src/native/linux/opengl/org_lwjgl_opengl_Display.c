@@ -238,7 +238,6 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplayPeerInfo_initDrawable(J
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplayPeerInfo_initDefaultPeerInfo(JNIEnv *env, jclass clazz, jlong display, jint screen, jobject peer_info_handle, jobject pixel_format) {
 	/*Display *disp = (Display *)(intptr_t)display;
 	initPeerInfo(env, peer_info_handle, disp, screen, pixel_format, true, GLX_WINDOW_BIT, true, false);*/
-	puts("Initialize gl here.");
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetTitle(JNIEnv * env, jclass clazz, jlong display, jlong window_ptr, jlong title, jint len) {
@@ -399,60 +398,6 @@ static void updateWindowBounds(Display *disp, Window win, int x, int y, int widt
 
 	XSetWMNormalHints(disp, win, window_hints);
 	XFree(window_hints);
-}
-
-static Window createWindow(JNIEnv* env, Display *disp, int screen, jint window_mode, X11PeerInfo *peer_info, int x, int y, int width, int height, jboolean undecorated, long parent_handle, jboolean resizable) {
-	Window parent = (Window)parent_handle;
-	Window win;
-	XSetWindowAttributes attribs;
-	int attribmask;
-
-	XVisualInfo *vis_info = getVisualInfoFromPeerInfo(env, peer_info);
-	if (vis_info == NULL)
-		return false;
-	cmap = XCreateColormap(disp, parent, vis_info->visual, AllocNone);
-	attribs.colormap = cmap;
-	attribs.border_pixel = 0;
-	attribs.event_mask = ExposureMask | FocusChangeMask | VisibilityChangeMask | StructureNotifyMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask| EnterWindowMask | LeaveWindowMask;
-	attribmask = CWColormap | CWEventMask | CWBorderPixel;
-	if (isLegacyFullscreen(window_mode)) {
-		attribmask |= CWOverrideRedirect;
-		attribs.override_redirect = True;
-	}
-	win = XCreateWindow(disp, parent, x, y, width, height, 0, vis_info->depth, InputOutput, vis_info->visual, attribmask, &attribs);
-
-	current_depth = vis_info->depth;
-	current_visual = vis_info->visual;
-
-	XFree(vis_info);
-	if (!checkXError(env, disp)) {
-		XFreeColormap(disp, cmap);
-		return false;
-	}
-//	printfDebugJava(env, "Created window");
-	if (undecorated) {
-		// Use Motif decoration hint property and hope the window manager respects them
-		setDecorations(disp, win, 0);
-	}
-
-	if (RootWindow(disp, screen) == parent_handle) { // only set hints when Display.setParent isn't used
-		updateWindowBounds(disp, win, x, y, width, height, JNI_TRUE, resizable);
-		updateWindowHints(env, disp, win);
-	}
-
-#define NUM_ATOMS 1
-	Atom protocol_atoms[NUM_ATOMS] = {XInternAtom(disp, "WM_DELETE_WINDOW", False)/*, XInternAtom(disp, "WM_TAKE_FOCUS", False)*/};
-	XSetWMProtocols(disp, win, protocol_atoms, NUM_ATOMS);
-	if (window_mode == org_lwjgl_opengl_LinuxDisplay_FULLSCREEN_NETWM) {
-		Atom fullscreen_atom = XInternAtom(disp, "_NET_WM_STATE_FULLSCREEN", False);
-		XChangeProperty(disp, win, XInternAtom(disp, "_NET_WM_STATE", False),
-						XInternAtom(disp, "ATOM", False), 32, PropModeReplace, (const unsigned char*)&fullscreen_atom, 1);
-	}
-	if (!checkXError(env, disp)) {
-		destroyWindow(env, disp, win);
-		return 0;
-	}
-	return win;
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_reparentWindow(JNIEnv *env, jclass unused, jlong display, jlong window_ptr, jlong parent_ptr, jint x, jint y) {
