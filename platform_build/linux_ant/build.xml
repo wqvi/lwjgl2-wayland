@@ -5,7 +5,7 @@
 	<property name="libname32" value="liblwjgl.so"/>
 	<property name="libname64" value="liblwjgl64.so"/>
 	<property name="libs32" value="-L/usr/X11R6/lib -L/usr/X11/lib -lm -lX11 -lXext -lXcursor -lXrandr -lXxf86vm -lpthread -L${java.home}/lib/i386 -ljawt" />
-	<property name="libs64" value="-L/usr/X11R6/lib64 -L/usr/X11/lib64 -lm -lX11 -lXext -lXcursor -lXrandr -lXxf86vm -lpthread -L${java.home}/lib/amd64 -ljawt -lglfw -lGLEW -lEGL -lGL -lGLU -lOpenGL" />
+	<property name="libs64" value="-L/usr/X11R6/lib64 -L/usr/X11/lib64 -lm -lX11 -lXext -lXcursor -lXrandr -lXxf86vm -lpthread -L${java.home}/lib/amd64 -ljawt -lSDL2 -lGLEW -lEGL -lGL -lGLU -lOpenGL" />
 	<property name="cflags32" value="-O2 -Wall -c -fPIC -std=c99 -Wunused"/>
 
 	<target name="clean">
@@ -32,7 +32,7 @@
 				<os name="SunOS" />
 			</and>
 		</condition>
-    	<condition property="cflags64" value="-O2 -m64 -Wall -c -fPIC -std=c99 -Wunused" else="-O2 -Wall -c -fPIC -std=c99 -Wunused">
+    	<condition property="cflags64" value="-O2 -m64 -Wall -c -fPIC -std=c99 -Wunused -D_REENTRANT" else="-O2 -Wall -c -fPIC -std=c99 -Wunused">
     		<os name="SunOS" />
     	</condition>
 

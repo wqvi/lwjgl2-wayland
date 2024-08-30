@@ -43,17 +43,19 @@
 #include <jni.h>
 #include "common_tools.h"
 #include "org_lwjgl_opengl_LinuxEvent.h"
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define NO_SDL_GLEXT
+#include <SDL2/SDL.h>
 
-extern GLFWwindow *context_window;
+extern int is_running;
+extern SDL_Window *context_window;
+static SDL_Event event;
 
 JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxEvent_createEventBuffer(JNIEnv *env, jclass unused) {
 	return newJavaManagedByteBuffer(env, sizeof(XEvent));
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_getPending(JNIEnv *env, jclass unused, jlong display_ptr) {
-	return !glfwWindowShouldClose(context_window);
+	return SDL_PollEvent(&event);
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxEvent_nSetWindow(JNIEnv *env, jclass unused, jobject event_buffer, jlong window_ptr) {
@@ -84,11 +86,17 @@ JNIEXPORT jboolean JNICALL Java_org_lwjgl_opengl_LinuxEvent_nFilterEvent(JNIEnv 
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxEvent_nNextEvent(JNIEnv *env, jclass unused, jlong display_ptr, jobject event_buffer) {
-	XEvent *event = (XEvent *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	/*Display *disp = (Display *)(intptr_t)display_ptr;
-	XNextEvent(disp, event);*/
-	event->type = 2; // okay so we are going to have to spoof an xevent somehow.
-	glfwPollEvents();
+	XEvent *mapped_event = (XEvent *)(*env)->GetDirectBufferAddress(env, event_buffer);
+	Uint32 event_type = event.type;
+	if (event_type == SDL_WINDOWEVENT) {
+		SDL_WindowEvent window_event = event.window;
+		if (window_event.event == SDL_WINDOWEVENT_CLOSE) {
+			// this is the close event type!
+			mapped_event->type = 33;
+			return;
+		}
+	}
+	mapped_event->type = 12;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetType(JNIEnv *env, jclass unused, jobject event_buffer) {
@@ -97,7 +105,7 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetType(JNIEnv *env, jc
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetWindow(JNIEnv *env, jclass unused, jobject event_buffer) {
-	return context_window;
+	return (intptr_t)context_window;
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetClientMessageType(JNIEnv *env, jclass unused, jobject event_buffer) {
@@ -106,13 +114,20 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetClientMessageType(J
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetClientData(JNIEnv *env, jclass unused, jobject event_buffer, jint index) {
-	XEvent *event = (XEvent *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	return event->xclient.data.l[index];
+	if (index == 0) {
+		// WM_DELETE_WINDOW
+		return 1;
+	}
+	// NOTHING
+	return 0;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetClientFormat(JNIEnv *env, jclass unused, jobject event_buffer) {
-	XEvent *event = (XEvent *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	return event->xclient.format;
+	XEvent *mapped_event = (XEvent *)(*env)->GetDirectBufferAddress(env, event_buffer);
+	if (mapped_event->type == 33) {
+		// CLOSE WINDOW
+		return 32;
+	}
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonTime(JNIEnv *env, jclass unused, jobject event_buffer) {

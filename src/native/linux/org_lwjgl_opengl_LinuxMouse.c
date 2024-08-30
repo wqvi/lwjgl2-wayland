@@ -39,8 +39,8 @@
  * @version $Revision: 2399 $
  */
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define NO_SDL_GLEXT
+#include <SDL2/SDL.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -55,25 +55,25 @@ static void getWindowAttributes(jlong display_ptr, jlong window_ptr, XWindowAttr
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetWindowHeight(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
 	if (!display_ptr) {
-		throwException(env, "GLFW is not initialized");
+		throwException(env, "SDL is not initialized");
 		return -1;
 	}
-	GLFWwindow *window = (GLFWwindow *)window_ptr;
+	SDL_Window *window = (SDL_Window *)window_ptr;
 	int width;
 	int height;
-	glfwGetWindowSize(window, &width, &height);
+	SDL_GL_GetDrawableSize(window, &width, &height);
 	return height;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetWindowWidth(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
 	if (!display_ptr) {
-		throwException(env, "GLFW is not initialized");
+		throwException(env, "SDL is not initialized");
 		return -1;
 	}
-	GLFWwindow *window = (GLFWwindow *)window_ptr;
+	SDL_Window *window = (SDL_Window *)window_ptr;
 	int width;
 	int height;
-	glfwGetWindowSize(window, &width, &height);
+	SDL_GL_GetDrawableSize(window, &width, &height);
 	return width;
 }
 

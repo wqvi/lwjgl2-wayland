@@ -39,8 +39,8 @@
  * @version $Revision$
  */
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define NO_SDL_GLEXT
+#include <SDL2/SDL.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/extensions/xf86vmode.h>
@@ -393,11 +393,12 @@ JNIEXPORT jobjectArray JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetAvailableD
 	jobjectArray ret = (*env)->NewObjectArray(env, 1, displayModeClass, NULL);
 	jmethodID displayModeConstructor = (*env)->GetMethodID(env, displayModeClass, "<init>", "(IIII)V");
 
-	GLFWmonitor *primary = glfwGetPrimaryMonitor();
-	const GLFWvidmode *mode = glfwGetVideoMode(primary);
-	int bbp = mode->redBits + mode->greenBits + mode->blueBits;
+	SDL_DisplayMode dm;
+	SDL_GetCurrentDisplayMode(0, &dm);
 
-	jobject displayMode = (*env)->NewObject(env, displayModeClass, displayModeConstructor, mode->width, mode->height, bbp, mode->refreshRate);
+	int bbp = 24;
+
+	jobject displayMode = (*env)->NewObject(env, displayModeClass, displayModeConstructor, dm.w, dm.h, bbp, dm.refresh_rate);
 	(*env)->SetObjectArrayElement(env, ret, 0, displayMode);
 	return ret;
 }

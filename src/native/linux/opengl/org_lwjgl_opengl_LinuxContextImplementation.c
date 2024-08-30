@@ -45,10 +45,10 @@
 #include "extgl_glx.h"
 #include "context.h"
 #include "common_tools.h"
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#define NO_SDL_GLEXT
+#include <SDL2/SDL.h>
 
-extern GLFWwindow *context_window;
+extern SDL_Window *context_window;
 
 typedef struct {
 	GLXExtensions extension_flags;
@@ -210,4 +210,5 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxContextImplementation_nSwapBuf
   (JNIEnv *env, jclass clazz, jobject peer_info_handle) {
 	X11PeerInfo *peer_info = (*env)->GetDirectBufferAddress(env, peer_info_handle);
 	lwjgl_glXSwapBuffers(peer_info->display, peer_info->drawable);
+	SDL_GL_SwapWindow(context_window);
 }
