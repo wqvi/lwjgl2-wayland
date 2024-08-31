@@ -163,9 +163,11 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetWidth(JNIEnv *env,
 		throwException(env, "SDL is not initialized");
 		return -1;
 	}
-	SDL_DisplayMode dm;
-	SDL_GetCurrentDisplayMode(0, &dm);
-	return dm.w;
+	SDL_Window *window = (SDL_Window *)window_ptr;
+	int w;
+	int h;
+	SDL_GL_GetDrawableSize(window, &w, &h);
+	return w;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetHeight(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
@@ -173,9 +175,11 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetHeight(JNIEnv *env
 		throwException(env, "SDL is not initialized");
 		return -1;
 	}
-	SDL_DisplayMode dm;
-	SDL_GetCurrentDisplayMode(0, &dm);
-	return dm.w;
+	SDL_Window *window = (SDL_Window *)window_ptr;
+	int w;
+	int h;
+	SDL_GL_GetDrawableSize(window, &w, &h);
+	return h;
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_reparentWindow(JNIEnv *env, jclass unused, jlong display, jlong window_ptr, jlong parent_ptr, jint x, jint y) {

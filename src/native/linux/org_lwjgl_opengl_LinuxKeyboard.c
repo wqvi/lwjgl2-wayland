@@ -67,8 +67,8 @@ JNIEXPORT jboolean JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_nSetDetectableKey
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_freeModifierMapping(JNIEnv *env, jclass unused, jlong mapping_ptr) {
-	XModifierKeymap *modifier_map = (XModifierKeymap *)(intptr_t)mapping_ptr;
-	XFreeModifiermap(modifier_map);
+	/*XModifierKeymap *modifier_map = (XModifierKeymap *)(intptr_t)mapping_ptr;
+	XFreeModifiermap(modifier_map);*/
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_getMaxKeyPerMod(JNIEnv *env, jclass unsused, jlong mapping_ptr) {
@@ -92,10 +92,11 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_keycodeToKeySym(JNIE
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_openIM(JNIEnv *env, jclass unused, jlong display_ptr) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
+	/*Display *disp = (Display *)(intptr_t)display_ptr;
 	XSetLocaleModifiers ("@im=none");
 	XIM xim = XOpenIM(disp, NULL, NULL, NULL);
-	return (intptr_t)xim;
+	return (intptr_t)xim;*/
+	return 1;
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_createIC(JNIEnv *env, jclass unused, jlong xim_ptr, jlong window_ptr) {
@@ -107,7 +108,7 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_createIC(JNIEnv *env
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_setupIMEventMask(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr, jlong xic_ptr) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
+	/*Display *disp = (Display *)(intptr_t)display_ptr;
 	Window win = (Window)window_ptr;
 	XIC xic = (XIC)(intptr_t)xic_ptr;
 	long im_event_mask;
@@ -116,12 +117,12 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_setupIMEventMask(JNIE
 	XGetWindowAttributes(disp, win, &win_attributes);
 	XGetICValues(xic, XNFilterEvents, &im_event_mask, NULL);
 	XSelectInput(disp, win, win_attributes.your_event_mask | im_event_mask);
-	XSetICFocus(xic);
+	XSetICFocus(xic);*/
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_destroyIC(JNIEnv *env, jclass unused, jlong xic_ptr) {
-	XIC xic = (XIC)(intptr_t)xic_ptr;
-	XDestroyIC(xic);
+	/*XIC xic = (XIC)(intptr_t)xic_ptr;
+	XDestroyIC(xic);*/
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_closeIM(JNIEnv *env, jclass unused, jlong xim_ptr) {
@@ -163,4 +164,5 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_utf8LookupString(JNIE
 	size_t num_bytes = Xutf8LookupString(xic, event, buffer, buffer_size, NULL, &status);
 	positionBuffer(env, buffer_obj, num_bytes);
 	return status;*/
+	return 0;
 }
