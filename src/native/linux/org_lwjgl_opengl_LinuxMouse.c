@@ -41,17 +41,8 @@
 
 #define NO_SDL_GLEXT
 #include <SDL2/SDL.h>
-#include <X11/X.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
 #include "common_tools.h"
 #include "org_lwjgl_opengl_LinuxMouse.h"
-
-static void getWindowAttributes(jlong display_ptr, jlong window_ptr, XWindowAttributes *attr) {
-	/*Display *disp = (Display *)(intptr_t)display_ptr;
-	Window win = (Window)window_ptr;
-	XGetWindowAttributes(disp, win, attr);*/
-}
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetWindowHeight(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
 	if (!display_ptr) {
