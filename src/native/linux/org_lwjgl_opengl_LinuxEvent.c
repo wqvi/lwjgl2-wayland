@@ -137,14 +137,32 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetWindow(JNIEnv *env,
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetClientMessageType(JNIEnv *env, jclass unused, jobject event_buffer) {
+	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
+	if (mapped_event->type == SDL_MOUSEMOTION) {
+		return 1;
+	}
 	return 0;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetClientData(JNIEnv *env, jclass unused, jobject event_buffer, jint index) {
-	if (index == 0) {
-		// WM_DELETE_WINDOW
-		return 1;
+	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
+	if (mapped_event->type == SDL_MOUSEMOTION) {
+		puts("warp?");
+		switch (index) {
+			case 0:
+				return mapped_event->motion.x;
+			case 1:
+			default:
+				return mapped_event->motion.y;
+		}
 	}
+
+	if (mapped_event->type == SDL_WINDOWEVENT) {
+		if (mapped_event->window.event == SDL_WINDOWEVENT_CLOSE) {
+			return 1;
+		}
+	}
+
 	// NOTHING
 	return 0;
 }
