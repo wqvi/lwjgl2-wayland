@@ -46,6 +46,10 @@
 #include <X11/keysym.h>
 #include "common_tools.h"
 #include "org_lwjgl_opengl_LinuxKeyboard.h"
+#define NO_SDL_GLEXT
+#include <SDL2/SDL.h>
+
+extern SDL_Keysym keysym;
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_getModifierMapping(JNIEnv *env, jclass unused, jlong display_ptr) {
 	/*Display *disp = (Display *)(intptr_t)display_ptr;
@@ -68,20 +72,23 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_freeModifierMapping(J
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_getMaxKeyPerMod(JNIEnv *env, jclass unsused, jlong mapping_ptr) {
-	XModifierKeymap *modifier_map = (XModifierKeymap *)(intptr_t)mapping_ptr;
-	return modifier_map->max_keypermod;
+	/*XModifierKeymap *modifier_map = (XModifierKeymap *)(intptr_t)mapping_ptr;
+	return modifier_map->max_keypermod;*/
+	return 0;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_lookupModifierMap(JNIEnv *env, jclass unused, jlong mapping_ptr, jint index) {
-	XModifierKeymap *modifier_map = (XModifierKeymap *)(intptr_t)mapping_ptr;
+	/*XModifierKeymap *modifier_map = (XModifierKeymap *)(intptr_t)mapping_ptr;
 	KeyCode key_code = modifier_map->modifiermap[index];
-	return key_code;
+	return key_code;*/
+	return keysym.sym;
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_keycodeToKeySym(JNIEnv *env, jclass unused, jlong display_ptr, jint key_code) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
+	/*Display *disp = (Display *)(intptr_t)display_ptr;
 	KeySym key_sym = XKeycodeToKeysym(disp, key_code, 0);
-	return key_sym;
+	return key_sym;*/
+	return keysym.sym;
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_openIM(JNIEnv *env, jclass unused, jlong display_ptr) {
@@ -123,22 +130,25 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_closeIM(JNIEnv *env, 
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_lookupKeysym(JNIEnv *env, jclass unused, jlong event_ptr, jint index) {
-	XKeyEvent *event = (XKeyEvent *)(intptr_t)event_ptr;
-	return XLookupKeysym(event, index);
+	/*XKeyEvent *event = (XKeyEvent *)(intptr_t)event_ptr;
+	return XLookupKeysym(event, index);*/
+	return keysym.sym;
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_toUpper(JNIEnv *env, jclass unused, jlong keysym) {
-	KeySym lower_case, upper_case;
+	/*KeySym lower_case, upper_case;
 	XConvertCase(keysym, &lower_case, &upper_case);
-	return upper_case;
+	return upper_case;*/
+	return 0;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_lookupString(JNIEnv *env, jclass unused, jlong event_ptr, jobject buffer_obj, jobject compose_status_obj) {
-	XKeyEvent *event = (XKeyEvent *)(intptr_t)event_ptr;
+	/*XKeyEvent *event = (XKeyEvent *)(intptr_t)event_ptr;
 	char *buffer = (char *)(*env)->GetDirectBufferAddress(env, buffer_obj);
 	int capacity = (*env)->GetDirectBufferCapacity(env, buffer_obj);
 	XComposeStatus *status = (XComposeStatus *)(*env)->GetDirectBufferAddress(env, compose_status_obj);
-	return XLookupString(event, buffer, capacity, NULL, status);
+	return XLookupString(event, buffer, capacity, NULL, status);*/
+	return 0;
 }
 
 JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_allocateComposeStatus(JNIEnv *env, jclass unused) {
@@ -146,11 +156,11 @@ JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_allocateComposeSta
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_utf8LookupString(JNIEnv *env, jclass unused, jlong xic_ptr, jlong event_ptr, jobject buffer_obj, jint buffer_position, jint buffer_size) {
-	XIC xic = (XIC)(intptr_t)xic_ptr;
+	/*XIC xic = (XIC)(intptr_t)xic_ptr;
 	XKeyEvent *event = (XKeyEvent *)(intptr_t)event_ptr;
 	char *buffer = buffer_position + (char *)(*env)->GetDirectBufferAddress(env, buffer_obj);
 	Status status;
 	size_t num_bytes = Xutf8LookupString(xic, event, buffer, buffer_size, NULL, &status);
 	positionBuffer(env, buffer_obj, num_bytes);
-	return status;
+	return status;*/
 }

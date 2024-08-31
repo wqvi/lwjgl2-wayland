@@ -49,6 +49,7 @@
 extern int is_running;
 extern SDL_Window *context_window;
 static SDL_Event event;
+SDL_Keysym keysym;
 
 JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxEvent_createEventBuffer(JNIEnv *env, jclass unused) {
 	return newJavaManagedByteBuffer(env, sizeof(SDL_Event));
@@ -91,21 +92,6 @@ JNIEXPORT jboolean JNICALL Java_org_lwjgl_opengl_LinuxEvent_nFilterEvent(JNIEnv 
 	return JNI_FALSE;
 }
 
-static void window_event(XEvent **mapped_event) {
-	switch (event.window.event) {
-		case SDL_WINDOWEVENT_CLOSE:
-			(*mapped_event)->type = 33;
-			return;
-	}
-}
-
-static void motion_event(XEvent **mapped_event) {
-	(*mapped_event)->type = 6;
-	(*mapped_event)->xbutton.time = event.motion.timestamp;
-	(*mapped_event)->xbutton.x = event.motion.x;
-	(*mapped_event)->xbutton.y = event.motion.y;
-}
-
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxEvent_nNextEvent(JNIEnv *env, jclass unused, jlong display_ptr, jobject event_buffer) {
 	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
 	memcpy(mapped_event, &event, sizeof(SDL_Event));
@@ -129,8 +115,10 @@ static jint map_event_type(SDL_Event *e) {
 		case SDL_WINDOWEVENT:
 			return map_window_event_type(e->window.event);
 		case SDL_KEYDOWN:
+			keysym = e->key.keysym;
 			return 2;
 		case SDL_KEYUP:
+			keysym = e->key.keysym;
 			return 3;
 		case SDL_MOUSEMOTION:
 			return 6;
@@ -188,12 +176,14 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonState(JNIEnv *
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonType(JNIEnv *env, jclass unused, jobject event_buffer) {
 	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	if (mapped_event->button.type == SDL_MOUSEBUTTONDOWN) {
-		return 4;
-	} else if (mapped_event->button.type == SDL_MOUSEBUTTONUP) {
-		return 5;
+	switch (mapped_event->button.type) {
+		case SDL_MOUSEBUTTONDOWN:
+			return 4;
+		case SDL_MOUSEBUTTONUP:
+			return 5;
+		default:
+			return 0;
 	}
-	return 0;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonButton(JNIEnv *env, jclass unused, jobject event_buffer) {
