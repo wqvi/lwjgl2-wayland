@@ -48,15 +48,7 @@
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetNativeCursorCapabilities
   (JNIEnv *env, jclass clazz, jlong display) {
-	Display *disp = (Display *)(intptr_t)display;
-	int caps = 0;
-	XcursorBool argb_supported = XcursorSupportsARGB(disp);
-	XcursorBool anim_supported = XcursorSupportsAnim(disp);
-	if (argb_supported)
-		caps |= org_lwjgl_input_Cursor_CURSOR_8_BIT_ALPHA | org_lwjgl_input_Cursor_CURSOR_ONE_BIT_TRANSPARENCY;
-	if (anim_supported)
-		caps |= org_lwjgl_input_Cursor_CURSOR_ANIMATION;
-	return caps;
+	  return org_lwjgl_input_Cursor_CURSOR_8_BIT_ALPHA | org_lwjgl_input_Cursor_CURSOR_ONE_BIT_TRANSPARENCY;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetMinCursorSize
