@@ -113,6 +113,10 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxEvent_nNextEvent(JNIEnv *env, 
 
 static jint map_window_event_type(SDL_WindowEventID id) {
 	switch (id) {
+		case SDL_WINDOWEVENT_ENTER:
+			return 7;
+		case SDL_WINDOWEVENT_LEAVE:
+			return 8;
 		case SDL_WINDOWEVENT_CLOSE:
 			return 33;
 		default:
@@ -222,9 +226,8 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonY(JNIEnv *env,
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetKeyAddress(JNIEnv *env, jclass unused, jobject event_buffer) {
-	XEvent *event = (XEvent *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	XKeyEvent *key_event = &(event->xkey);
-	return (jlong)(intptr_t)key_event;
+	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
+	return (intptr_t)mapped_event;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetKeyTime(JNIEnv *env, jclass unused, jobject event_buffer) {
@@ -233,16 +236,33 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetKeyTime(JNIEnv *env,
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetKeyType(JNIEnv *env, jclass unused, jobject event_buffer) {
-	XEvent *event = (XEvent *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	return event->xkey.type;
+	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
+	switch (mapped_event->key.type) {
+		case SDL_KEYDOWN:
+			return 2;
+		case SDL_KEYUP:
+			return 3;
+		default:
+			return 0;
+	}
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetKeyKeyCode(JNIEnv *env, jclass unused, jobject event_buffer) {
-	XEvent *event = (XEvent *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	return event->xkey.keycode;
+	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
+	return mapped_event->key.keysym.scancode;
 }
 
+// ???????? what is this function supposed to do?
+// it seems like it is redundant.
+// however I can't remove it :(
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetKeyState(JNIEnv *env, jclass unused, jobject event_buffer) {
-	XEvent *event = (XEvent *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	return event->xkey.state;
+	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
+	switch (mapped_event->key.type) {
+		case SDL_KEYDOWN:
+			return 2;
+		case SDL_KEYUP:
+			return 3;
+		default:
+			return 0;
+	}
 }
