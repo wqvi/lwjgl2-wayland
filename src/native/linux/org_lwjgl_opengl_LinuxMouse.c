@@ -44,6 +44,8 @@
 #include "common_tools.h"
 #include "org_lwjgl_opengl_LinuxMouse.h"
 
+extern SDL_Event event;
+
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetWindowHeight(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
 	if (!display_ptr) {
 		throwException(env, "SDL is not initialized");
@@ -72,29 +74,29 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxMouse_nWarpCursor(JNIEnv *env,
 	/*Display *disp = (Display *)(intptr_t)display_ptr;
 	Window win = (Window)window_ptr;
 	XWarpPointer(disp, None, win, 0, 0, 0, 0, x, y);*/
+	//SDL_Window *window = (SDL_Window *)window_ptr;
+	//SDL_WarpMouseInWindow(window, x, y);
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxMouse_nQueryPointer(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr, jobject result_buffer) {
-	/*Display *disp = (Display *)(intptr_t)display_ptr;
-	Window win = (Window)window_ptr;
-	Window root_return, child_return;
-	int root_x, root_y, win_x, win_y;
-	unsigned int mask_return;
+	//Display *disp = (Display *)(intptr_t)display_ptr;
+	//Window win = (Window)window_ptr;
+	//Window root_return, child_return;
+	//int root_x, root_y, win_x, win_y;
+	//unsigned int mask_return;
 	jint *result = (jint *)(*env)->GetDirectBufferAddress(env, result_buffer);
-	int result_size = (*env)->GetDirectBufferCapacity(env, result_buffer);
-	if (result_size < 4) {
+	//int result_size = (*env)->GetDirectBufferCapacity(env, result_buffer);
+	/*if (result_size < 4) {
 		throwFormattedException(env, "Not enough space in result buffer (%d)", result_size);
 		return (intptr_t)NULL;
-	}
+	}*/
 	
-	XQueryPointer(disp, win, &root_return, &child_return, &root_x, &root_y, &win_x, &win_y, &mask_return);
-	result[0] = root_x;
-	result[1] = root_y;
-	result[2] = win_x;
-	result[3] = win_y;
-	return root_return;*/
-	// query pointer? what is this??
-	return 0;
+	//XQueryPointer(disp, win, &root_return, &child_return, &root_x, &root_y, &win_x, &win_y, &mask_return);
+	result[0] = event.button.x;
+	result[1] = event.button.y;
+	result[2] = event.button.x;
+	result[3] = event.button.y;
+	return window_ptr;
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxMouse_nSendWarpEvent(JNIEnv *env, jclass unusued, jlong display_ptr, jlong window_ptr, jlong warp_atom_ptr, jint x, jint y) {
@@ -122,5 +124,5 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetButtonCount(JNIEnv *
 	free(pointer_map);
 
 	return count;*/
-	return 5; 
+	return 6; 
 }

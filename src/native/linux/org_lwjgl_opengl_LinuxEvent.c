@@ -45,7 +45,7 @@
 
 extern int is_running;
 extern SDL_Window *context_window;
-static SDL_Event event;
+SDL_Event event;
 SDL_Keysym keysym;
 
 JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxEvent_createEventBuffer(JNIEnv *env, jclass unused) {
@@ -119,6 +119,7 @@ static jint map_event_type(SDL_Event *e) {
 			return 6;
 		case SDL_MOUSEBUTTONDOWN:
 			return 4;
+		case SDL_MOUSEWHEEL:
 		case SDL_MOUSEBUTTONUP:
 			return 5;
 		default:
@@ -170,6 +171,10 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonState(JNIEnv *
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonType(JNIEnv *env, jclass unused, jobject event_buffer) {
 	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
+	if (mapped_event->type == SDL_MOUSEWHEEL) {
+		// ah yes this is indeed a mouse press
+		return 4;
+	}
 	switch (mapped_event->button.type) {
 		case SDL_MOUSEBUTTONDOWN:
 			return 4;
@@ -182,6 +187,15 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonType(JNIEnv *e
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonButton(JNIEnv *env, jclass unused, jobject event_buffer) {
 	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
+	if (mapped_event->type == SDL_MOUSEWHEEL) {
+		SDL_MouseWheelEvent e = mapped_event->wheel;
+		switch (e.y) {
+			case -1:
+				return 5;
+			case 1:
+				return 4;
+		}
+	}
 	return mapped_event->button.button;
 }
 
