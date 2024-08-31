@@ -231,9 +231,30 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetKeyType(JNIEnv *env,
 	}
 }
 
+jint convert_keycode(SDL_Keycode sym) {
+	switch (sym) {
+		case SDLK_BACKSPACE:
+		case SDLK_TAB:
+		case SDLK_RETURN:
+		case SDLK_ESCAPE:
+			return sym | 0xff00; // the upper four are the same as X11's keys when converted via or
+		case SDLK_LSHIFT:
+			return 0xffe1; // XK_Shift_L
+		case SDLK_RSHIFT:
+			return 0xffe2; // XK_Shift_R
+		case SDLK_LCTRL:
+			return 0xffe3; // XK_Control_L
+		case SDLK_RCTRL:
+			return 0xffe4; // XK_Control_R
+		default:
+			return sym;
+	}
+}
+
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetKeyKeyCode(JNIEnv *env, jclass unused, jobject event_buffer) {
 	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	return mapped_event->key.keysym.scancode;
+	SDL_Keycode sym = mapped_event->key.keysym.sym;
+	return convert_keycode(sym);
 }
 
 // ???????? what is this function supposed to do?
@@ -241,12 +262,6 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetKeyKeyCode(JNIEnv *e
 // however I can't remove it :(
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetKeyState(JNIEnv *env, jclass unused, jobject event_buffer) {
 	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	switch (mapped_event->key.type) {
-		case SDL_KEYDOWN:
-			return 2;
-		case SDL_KEYUP:
-			return 3;
-		default:
-			return 0;
-	}
+	SDL_Keycode sym = mapped_event->key.keysym.sym;
+	return convert_keycode(sym);
 }
