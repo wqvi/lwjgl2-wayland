@@ -73,8 +73,8 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxEvent_nSendEvent(JNIEnv *env, 
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetFocusDetail(JNIEnv *env, jclass unused, jobject event_buffer) {
-	XEvent *event = (XEvent *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	return event->xfocus.detail;
+	// lol?
+	return 129384;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetFocusMode(JNIEnv *env, jclass unused, jobject event_buffer) {
@@ -97,12 +97,16 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxEvent_nNextEvent(JNIEnv *env, 
 	memcpy(mapped_event, &event, sizeof(SDL_Event));
 }
 
-static jint map_window_event_type(SDL_WindowEventID id) {
-	switch (id) {
+static jint map_window_event_type(SDL_WindowEvent *e) {
+	switch (e->event) {
 		case SDL_WINDOWEVENT_ENTER:
 			return 7;
 		case SDL_WINDOWEVENT_LEAVE:
 			return 8;
+		case SDL_WINDOWEVENT_FOCUS_GAINED:
+			return 9;
+		case SDL_WINDOWEVENT_FOCUS_LOST:
+			return 10;
 		case SDL_WINDOWEVENT_CLOSE:
 			return 33;
 		default:
@@ -113,7 +117,7 @@ static jint map_window_event_type(SDL_WindowEventID id) {
 static jint map_event_type(SDL_Event *e) {
 	switch (e->type) {
 		case SDL_WINDOWEVENT:
-			return map_window_event_type(e->window.event);
+			return map_window_event_type(&e->window);
 		case SDL_KEYDOWN:
 			keysym = e->key.keysym;
 			return 2;
