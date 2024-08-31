@@ -48,9 +48,9 @@
 #include "org_lwjgl_opengl_LinuxMouse.h"
 
 static void getWindowAttributes(jlong display_ptr, jlong window_ptr, XWindowAttributes *attr) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
+	/*Display *disp = (Display *)(intptr_t)display_ptr;
 	Window win = (Window)window_ptr;
-	XGetWindowAttributes(disp, win, attr);
+	XGetWindowAttributes(disp, win, attr);*/
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetWindowHeight(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
@@ -78,9 +78,9 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetWindowWidth(JNIEnv *
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxMouse_nWarpCursor(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr, jint x, jint y) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
+	/*Display *disp = (Display *)(intptr_t)display_ptr;
 	Window win = (Window)window_ptr;
-	XWarpPointer(disp, None, win, 0, 0, 0, 0, x, y);
+	XWarpPointer(disp, None, win, 0, 0, 0, 0, x, y);*/
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxMouse_nQueryPointer(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr, jobject result_buffer) {
@@ -107,7 +107,7 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxMouse_nQueryPointer(JNIEnv *e
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxMouse_nSendWarpEvent(JNIEnv *env, jclass unusued, jlong display_ptr, jlong window_ptr, jlong warp_atom_ptr, jint x, jint y) {
-	Atom warp_atom = (Atom)warp_atom_ptr;
+	/*Atom warp_atom = (Atom)warp_atom_ptr;
 	Display *disp = (Display *)(intptr_t)display_ptr;
 	Window win = (Window)window_ptr;
 	XEvent warp_event;
@@ -117,7 +117,7 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxMouse_nSendWarpEvent(JNIEnv *e
 	warp_event.xclient.format = 32;
 	warp_event.xclient.data.l[0] = x;
 	warp_event.xclient.data.l[1] = y;
-	XSendEvent(disp, win, False, 0, &warp_event);
+	XSendEvent(disp, win, False, 0, &warp_event);*/
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetButtonCount(JNIEnv *env, jclass unused, jlong display_ptr) {
@@ -131,6 +131,5 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetButtonCount(JNIEnv *
 	free(pointer_map);
 
 	return count;*/
-	// idk what this does so I am going to assume you have two mouse buttons
-	return 2; 
+	return 5; 
 }

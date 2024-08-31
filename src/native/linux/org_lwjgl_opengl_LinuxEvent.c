@@ -66,10 +66,10 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxEvent_nSetWindow(JNIEnv *env, 
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxEvent_nSendEvent(JNIEnv *env, jclass unused, jobject event_buffer, jlong display_ptr, jlong window_ptr, jboolean propagate, jlong eventmask) {
-	XEvent *event = (XEvent *)(*env)->GetDirectBufferAddress(env, event_buffer);
+	/*XEvent *event = (XEvent *)(*env)->GetDirectBufferAddress(env, event_buffer);
 	Display *disp = (Display *)(intptr_t)display_ptr;
 	Window window = (Window)window_ptr;
-	XSendEvent(disp, window, propagate == JNI_TRUE ? True : False, eventmask, event);
+	XSendEvent(disp, window, propagate == JNI_TRUE ? True : False, eventmask, event);*/
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetFocusDetail(JNIEnv *env, jclass unused, jobject event_buffer) {
