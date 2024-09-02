@@ -47,10 +47,12 @@
 extern SDL_Event event;
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetWindowHeight(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
-	if (!display_ptr) {
-		throwException(env, "SDL is not initialized");
-		return -1;
+	if (window_ptr == 1) {
+		SDL_DisplayMode dm;
+		SDL_GetCurrentDisplayMode(0, &dm);
+		return dm.h;
 	}
+
 	SDL_Window *window = (SDL_Window *)window_ptr;
 	int width;
 	int height;
@@ -59,10 +61,12 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetWindowHeight(JNIEnv 
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetWindowWidth(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
-	if (!display_ptr) {
-		throwException(env, "SDL is not initialized");
-		return -1;
+	if (window_ptr == 1) {
+		SDL_DisplayMode dm;
+		SDL_GetCurrentDisplayMode(0, &dm);
+		return dm.w;
 	}
+
 	SDL_Window *window = (SDL_Window *)window_ptr;
 	int width;
 	int height;
@@ -71,31 +75,9 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxMouse_nGetWindowWidth(JNIEnv *
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxMouse_nWarpCursor(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr, jint x, jint y) {
-	/*Display *disp = (Display *)(intptr_t)display_ptr;
-	Window win = (Window)window_ptr;
-	XWarpPointer(disp, None, win, 0, 0, 0, 0, x, y);*/
-	//SDL_Window *window = (SDL_Window *)window_ptr;
-	//SDL_WarpMouseInWindow(window, x, y);
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxMouse_nQueryPointer(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr, jobject result_buffer) {
-	//Display *disp = (Display *)(intptr_t)display_ptr;
-	//Window win = (Window)window_ptr;
-	//Window root_return, child_return;
-	//int root_x, root_y, win_x, win_y;
-	//unsigned int mask_return;
-	jint *result = (jint *)(*env)->GetDirectBufferAddress(env, result_buffer);
-	//int result_size = (*env)->GetDirectBufferCapacity(env, result_buffer);
-	/*if (result_size < 4) {
-		throwFormattedException(env, "Not enough space in result buffer (%d)", result_size);
-		return (intptr_t)NULL;
-	}*/
-	
-	//XQueryPointer(disp, win, &root_return, &child_return, &root_x, &root_y, &win_x, &win_y, &mask_return);
-	result[0] = event.button.x;
-	result[1] = event.button.y;
-	result[2] = event.button.x;
-	result[3] = event.button.y;
 	return window_ptr;
 }
 

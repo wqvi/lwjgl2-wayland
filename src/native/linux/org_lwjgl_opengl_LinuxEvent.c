@@ -139,7 +139,7 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetWindow(JNIEnv *env,
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetClientMessageType(JNIEnv *env, jclass unused, jobject event_buffer) {
 	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
 	if (mapped_event->type == SDL_MOUSEMOTION) {
-		return 1;
+		return 2;
 	}
 	return 0;
 }
@@ -147,7 +147,6 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetClientMessageType(J
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetClientData(JNIEnv *env, jclass unused, jobject event_buffer, jint index) {
 	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
 	if (mapped_event->type == SDL_MOUSEMOTION) {
-		puts("warp?");
 		switch (index) {
 			case 0:
 				return mapped_event->motion.x;
@@ -156,7 +155,6 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetClientData(JNIEnv *e
 				return mapped_event->motion.y;
 		}
 	}
-
 	if (mapped_event->type == SDL_WINDOWEVENT) {
 		if (mapped_event->window.event == SDL_WINDOWEVENT_CLOSE) {
 			return 1;
@@ -218,27 +216,45 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonButton(JNIEnv 
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonRoot(JNIEnv *env, jclass unused, jobject event_buffer) {
-	return (intptr_t)context_window;
+	return 1;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonXRoot(JNIEnv *env, jclass unused, jobject event_buffer) {
-	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	return mapped_event->button.x;
+	int x;
+	int y;
+	SDL_GetGlobalMouseState(&x, &y);
+	return x;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonYRoot(JNIEnv *env, jclass unused, jobject event_buffer) {
-	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	return mapped_event->button.y;
+	int x;
+	int y;
+	SDL_GetGlobalMouseState(&x, &y);
+	return y;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonX(JNIEnv *env, jclass unused, jobject event_buffer) {
+	static int x = 0;
 	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	return mapped_event->button.x;
+	SDL_DisplayMode dm;
+	SDL_GetCurrentDisplayMode(0, &dm);
+	x += mapped_event->motion.xrel;
+	if (!SDL_GetRelativeMouseMode()) {
+		return mapped_event->motion.x;
+	}
+	return x;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonY(JNIEnv *env, jclass unused, jobject event_buffer) {
+	static int y = 0;
 	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	return mapped_event->button.y;
+	SDL_DisplayMode dm;
+	SDL_GetCurrentDisplayMode(0, &dm);
+	y += mapped_event->motion.yrel;
+	if (!SDL_GetRelativeMouseMode()) {
+		return mapped_event->motion.y;
+	}
+	return y;
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetKeyAddress(JNIEnv *env, jclass unused, jobject event_buffer) {
