@@ -145,22 +145,57 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_toUpper(JNIEnv *env,
 	return 0;
 }
 
+static char handle_shift_modifier(SDL_Keycode sym) {
+	// this is scuffed but SDL_GetKeyName doesn't exactly
+	// work the way I'd want it to.
+	// least this way the compiler *might* optimize this to a
+	// lookup table for characters
+	
+	// lets hope it's an optimizing compiler :)
+	switch (sym) {
+		case SDLK_1:
+			return '!';
+		case SDLK_2:
+			return '@';
+		case SDLK_3:
+			return '#';
+		case SDLK_4:
+			return '$';
+		case SDLK_5:
+			return '%';
+		case SDLK_6:
+			return '^';
+		case SDLK_7:
+			return '&';
+		case SDLK_8:
+			return '*';
+		case SDLK_9:
+			return '(';
+		case SDLK_0:
+			return ')';
+	}
+
+	return toupper((char)sym);
+}
+
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_lookupString(JNIEnv *env, jclass unused, jlong event_ptr, jobject buffer_obj, jobject compose_status_obj) {
 	SDL_Event *event = (SDL_Event *)event_ptr;
 	char *buffer = (char *)(*env)->GetDirectBufferAddress(env, buffer_obj);
-	int capacity = (*env)->GetDirectBufferCapacity(env, buffer_obj);
+
 	if (event->type & (SDL_KEYDOWN | SDL_KEYUP)) {
-		SDL_Keycode sym = event->key.keysym.sym;
+		SDL_Keysym keysym = event->key.keysym;
+		SDL_Keycode sym = keysym.sym;
+		Uint16 mod = keysym.mod;
 		if (sym >= 32 && sym <= 126) {
-			buffer[0] = (char)sym;
+			char c = (char)sym;
+			if (mod & KMOD_SHIFT) {
+				c = handle_shift_modifier(c);
+			}
+			buffer[0] = c;
 			return 1;
 		}
 	}
-	/*XKeyEvent *event = (XKeyEvent *)(intptr_t)event_ptr;
-	char *buffer = (char *)(*env)->GetDirectBufferAddress(env, buffer_obj);
-	int capacity = (*env)->GetDirectBufferCapacity(env, buffer_obj);
-	XComposeStatus *status = (XComposeStatus *)(*env)->GetDirectBufferAddress(env, compose_status_obj);
-	return XLookupString(event, buffer, capacity, NULL, status);*/
+
 	return 0;
 }
 
@@ -169,12 +204,5 @@ JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_allocateComposeSta
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_utf8LookupString(JNIEnv *env, jclass unused, jlong xic_ptr, jlong event_ptr, jobject buffer_obj, jint buffer_position, jint buffer_size) {
-	/*XIC xic = (XIC)(intptr_t)xic_ptr;
-	XKeyEvent *event = (XKeyEvent *)(intptr_t)event_ptr;
-	char *buffer = buffer_position + (char *)(*env)->GetDirectBufferAddress(env, buffer_obj);
-	Status status;
-	size_t num_bytes = Xutf8LookupString(xic, event, buffer, buffer_size, NULL, &status);
-	positionBuffer(env, buffer_obj, num_bytes);
-	return status;*/
-	return 0;
+	return 0; // dunno why I didn't implement this one?
 }
