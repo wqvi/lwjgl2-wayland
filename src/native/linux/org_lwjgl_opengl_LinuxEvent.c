@@ -236,24 +236,26 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonYRoot(JNIEnv *
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonX(JNIEnv *env, jclass unused, jobject event_buffer) {
 	static int x = 0;
 	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	SDL_DisplayMode dm;
-	SDL_GetCurrentDisplayMode(0, &dm);
-	x += mapped_event->motion.xrel;
+	// this usually gets called during a menu
+	// so we just reset the internal camera x and y
 	if (!SDL_GetRelativeMouseMode()) {
+		x = 0;
 		return mapped_event->motion.x;
 	}
+	x += mapped_event->motion.xrel;
 	return x;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetButtonY(JNIEnv *env, jclass unused, jobject event_buffer) {
 	static int y = 0;
 	SDL_Event *mapped_event = (SDL_Event *)(*env)->GetDirectBufferAddress(env, event_buffer);
-	SDL_DisplayMode dm;
-	SDL_GetCurrentDisplayMode(0, &dm);
-	y += mapped_event->motion.yrel;
+	// this usually gets called during a menu
+	// so we just reset the internal camera x and y
 	if (!SDL_GetRelativeMouseMode()) {
+		y = 0;
 		return mapped_event->motion.y;
 	}
+	y += mapped_event->motion.yrel;
 	return y;
 }
 
