@@ -279,7 +279,23 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxEvent_nGetKeyType(JNIEnv *env,
 	}
 }
 
+static jint convert_function_keycodes(SDL_Keycode sym) {
+	if (sym < SDLK_F1 || sym > SDLK_F12) {
+		return -1;
+	}
+	int i = SDLK_F12 - sym;
+	// XK_F12
+	// - the numerical difference between SDLK_F12 and sym
+	// which could range between 0 and 12
+	return 0xffc9 - i;
+}
+
 jint convert_keycode(SDL_Keycode sym) {
+	jint keycode = convert_function_keycodes(sym);
+	if (keycode > 0) {
+		return keycode;
+	}
+
 	switch (sym) {
 		case SDLK_BACKSPACE:
 		case SDLK_TAB:
