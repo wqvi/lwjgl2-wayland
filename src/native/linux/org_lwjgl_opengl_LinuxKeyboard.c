@@ -146,6 +146,16 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_toUpper(JNIEnv *env,
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_lookupString(JNIEnv *env, jclass unused, jlong event_ptr, jobject buffer_obj, jobject compose_status_obj) {
+	SDL_Event *event = (SDL_Event *)event_ptr;
+	char *buffer = (char *)(*env)->GetDirectBufferAddress(env, buffer_obj);
+	int capacity = (*env)->GetDirectBufferCapacity(env, buffer_obj);
+	if (event->type & (SDL_KEYDOWN | SDL_KEYUP)) {
+		SDL_Keycode sym = event->key.keysym.sym;
+		if (sym >= 32 && sym <= 126) {
+			buffer[0] = (char)sym;
+			return 1;
+		}
+	}
 	/*XKeyEvent *event = (XKeyEvent *)(intptr_t)event_ptr;
 	char *buffer = (char *)(*env)->GetDirectBufferAddress(env, buffer_obj);
 	int capacity = (*env)->GetDirectBufferCapacity(env, buffer_obj);
