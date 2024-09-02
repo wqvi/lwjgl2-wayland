@@ -1,13 +1,8 @@
-# What is this project?
-I personally use a purely wayland system. I want to play older versions of Minecraft. Unfortunately those only support X and I would rather not use Xwayland. So I decided to try my hand at patching lwjgl to work with wayland.
-
-# I built it this way instead
-This way will generate the libs/ path
-* ant generate-all
-* ant all
+# Wayland LWJGL2.9.3 patch
+I used the SDL2 library in place of the X11 library for windowing, mouse, and keyboard. This way I can play Minecraft without having to use xorg-xwayland. I tend to run into issues using Xwayland such as blurry windows or strange input. Now you can enjoy classic versions of Minecraft without the need for Xwayland!
 
 # How to use this instead of the default lwjgl instance
-If you use MultiMC or PrismLauncher you can specify java command line arguments. Lwjgl has a command line argument known as org.lwjgl.librarypath. Specify this to the libs/linux path of the repository. An example:
+If you use MultiMC or PrismLauncher you can specify java command line arguments. LWJGL has a way to set the native library loaded. Query it through the -D flag and org.lwjgl.librarypath. Assign org.lwjgl.librarypath to where ever the native library resides. An example:
 `
 -Dorg.lwjgl.librarypath=~/lwjgl2-wayland/libs/linux
 `
