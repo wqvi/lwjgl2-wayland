@@ -243,6 +243,8 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 		return 0;
 	}
 
+	SDL_GL_MakeCurrent(context_window, context);
+
 	SDL_GL_SetSwapInterval(1);
 
 	glewExperimental = GL_FALSE;
