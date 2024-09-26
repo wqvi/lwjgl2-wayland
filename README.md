@@ -15,6 +15,7 @@ I've tested these versions of Minecraft to see which ones are incompatible with 
 - 1.3.2
 - 1.4.7
 - 1.5.1
+
 I am under the assumption that all other versions of Minecraft work with my LWJGL2 patch. I have been working on a hack for openjdk-8.422_p05 to fix the incompatibilities. The errors that those versions throw are all from Java AWT. So my thinking was to patch openjdk-8.422_p05.
 
 LWJGL - Lightweight Java Game Library
