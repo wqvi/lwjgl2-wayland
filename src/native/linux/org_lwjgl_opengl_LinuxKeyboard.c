@@ -173,6 +173,8 @@ static char handle_shift_modifier(SDL_Keycode sym) {
 			return '(';
 		case SDLK_0:
 			return ')';
+		case SDLK_SLASH:
+			return '?';
 	}
 
 	return toupper((char)sym);
@@ -186,10 +188,6 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_lookupString(JNIEnv *
 		SDL_Keysym keysym = event->key.keysym;
 		SDL_Keycode sym = keysym.sym;
 		Uint16 mod = keysym.mod;
-		if (sym == SDLK_SLASH && mod & KMOD_SHIFT) {
-			buffer[0] = (char)SDLK_QUESTION;
-			return 1;
-		}
 		if (sym >= 32 && sym <= 126) {
 			char c = (char)sym;
 			if (mod & KMOD_SHIFT) {
