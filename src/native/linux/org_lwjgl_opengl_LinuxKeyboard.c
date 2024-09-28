@@ -186,6 +186,10 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_lookupString(JNIEnv *
 		SDL_Keysym keysym = event->key.keysym;
 		SDL_Keycode sym = keysym.sym;
 		Uint16 mod = keysym.mod;
+		if (sym == SDLK_SLASH && mod & KMOD_SHIFT) {
+			buffer[0] = (char)SDLK_QUESTION;
+			return 1;
+		}
 		if (sym >= 32 && sym <= 126) {
 			char c = (char)sym;
 			if (mod & KMOD_SHIFT) {
