@@ -173,11 +173,31 @@ static char handle_shift_modifier(SDL_Keycode sym) {
 			return '(';
 		case SDLK_0:
 			return ')';
+		case SDLK_MINUS:
+			return '_';
+		case SDLK_EQUALS:
+			return '+';
+		case SDLK_SEMICOLON:
+			return ':';
+		case SDLK_QUOTE:
+			return '"';
+		case SDLK_COMMA:
+			return '<';
+		case SDLK_PERIOD:
+			return '>';
 		case SDLK_SLASH:
 			return '?';
+		case SDLK_LEFTBRACKET:
+			return '{';
+		case SDLK_RIGHTBRACKET:
+			return '}';
+		case SDLK_BACKSLASH:
+			return '|';
+		case SDLK_BACKQUOTE:
+			return '~';
+		default:
+			return toupper((char)sym);
 	}
-
-	return toupper((char)sym);
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_lookupString(JNIEnv *env, jclass unused, jlong event_ptr, jobject buffer_obj, jobject compose_status_obj) {
