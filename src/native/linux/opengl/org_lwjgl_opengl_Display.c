@@ -59,7 +59,7 @@
 
 int is_running = 0;
 SDL_Window *context_window;
-static SDL_GLContext context;
+SDL_GLContext context;
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_DefaultSysImplementation_getJNIVersion
   (JNIEnv *env, jobject ignored) {
@@ -219,6 +219,10 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 	jfieldID fid_height = (*env)->GetFieldID(env, cls_displayMode, "height", "I");
 	int width = (*env)->GetIntField(env, mode, fid_width);
 	int height = (*env)->GetIntField(env, mode, fid_height);
+	int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+	/*if (resizable) {
+		flags |= SDL_WINDOW_RESIZABLE;
+	}*/
 	context_window = SDL_CreateWindow("lwjgl2-sdl-wayland",
 			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 			width, height,
@@ -294,14 +298,13 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetWindowIcon
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nUngrabKeyboard(JNIEnv *env, jclass unused, jlong display_ptr) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
-	return XUngrabKeyboard(disp, CurrentTime);
+	SDL_SetWindowKeyboardGrab(context_window, SDL_FALSE);
+	return 0;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGrabKeyboard(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
-	Window win = (Window)window_ptr;
-	return XGrabKeyboard(disp, win, False, GrabModeAsync, GrabModeAsync, CurrentTime);
+	SDL_SetWindowKeyboardGrab(context_window, SDL_TRUE);
+	return 0;
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGrabPointer(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr, jlong cursor_ptr) {
@@ -314,12 +317,10 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGrabPointer(JNIEnv *e
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetViewPort(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr, jint screen) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
-	Window win = (Window)window_ptr;
-	XWindowAttributes win_attribs;
-
-	XGetWindowAttributes(disp, win, &win_attribs);
-	XF86VidModeSetViewPort(disp, screen, win_attribs.x, win_attribs.y);
+	int w;
+	int h;
+	SDL_GL_GetDrawableSize(context_window, &w, &h);
+	glViewport(0, 0, w, h);
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nUngrabPointer(JNIEnv *env, jclass unused, jlong display_ptr) {

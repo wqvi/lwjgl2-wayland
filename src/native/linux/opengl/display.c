@@ -52,6 +52,8 @@
 #include "common_tools.h"
 #include "org_lwjgl_opengl_LinuxDisplay.h"
 
+extern SDL_Window *context_window;
+
 #define NUM_XRANDR_RETRIES 5
 
 typedef struct {
@@ -384,7 +386,10 @@ JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetCurrentXRandrMo
 	jclass displayModeClass = (*env)->FindClass(env, "org/lwjgl/opengl/DisplayMode");
 	jmethodID displayModeConstructor = (*env)->GetMethodID(env, displayModeClass, "<init>", "(IIII)V");
 
-	jobject displayMode = (*env)->NewObject(env, displayModeClass, displayModeConstructor, 640, 480, 1, 60);
+	SDL_DisplayMode dm;
+	SDL_GetCurrentDisplayMode(0, &dm);
+
+	jobject displayMode = (*env)->NewObject(env, displayModeClass, displayModeConstructor, 640, 480, 24, 60);
 	return displayMode;
 }
 
@@ -404,7 +409,19 @@ JNIEXPORT jobjectArray JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetAvailableD
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSwitchDisplayMode(JNIEnv *env, jclass clazz, jlong display, jint screen, jint extension, jobject mode) {
-	printfDebugJava(env, "There should not be a need to switch display modes.");
+	jclass cls_displayMode = (*env)->GetObjectClass(env, mode);
+	jfieldID fid_fullscreen = (*env)->GetFieldID(env, cls_displayMode, "fullscreen", "Z");
+
+	int fullscreen = (*env)->GetBooleanField(env, mode, fid_fullscreen);
+	if (fullscreen) {
+		SDL_SetWindowFullscreen(context_window, SDL_WINDOW_FULLSCREEN);
+	} else {
+		int flags = SDL_GetWindowFlags(context_window);
+		// make sure that it won't accidentally be set to floating
+		if (flags & SDL_WINDOW_FULLSCREEN) {
+			SDL_SetWindowFullscreen(context_window, 0);
+		}
+	}
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetGammaRampLength(JNIEnv *env, jclass clazz, jlong display_ptr, jint screen) {
