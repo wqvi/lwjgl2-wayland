@@ -268,8 +268,13 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetWindowSize(JNIEnv 
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nDestroyWindow(JNIEnv *env, jclass clazz, jlong display, jlong window_ptr) {
 	// we cheat here as minecraft should only delete one window!
-	SDL_GL_DeleteContext(context);
-	SDL_DestroyWindow(context_window);
+	if (context != NULL) {
+		SDL_GL_DeleteContext(context);
+	}
+
+	if (context_window != NULL) {
+		SDL_DestroyWindow(context_window);
+	}
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nLockAWT(JNIEnv *env, jclass clazz) {
