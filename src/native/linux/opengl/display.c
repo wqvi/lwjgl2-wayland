@@ -415,11 +415,13 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSwitchDisplayMode(JNI
 	int fullscreen = (*env)->GetBooleanField(env, mode, fid_fullscreen);
 	if (fullscreen) {
 		SDL_SetWindowFullscreen(context_window, SDL_WINDOW_FULLSCREEN);
+		SDL_SetRelativeMouseMode(SDL_FALSE);
 	} else {
 		int flags = SDL_GetWindowFlags(context_window);
 		// make sure that it won't accidentally be set to floating
 		if (flags & SDL_WINDOW_FULLSCREEN) {
 			SDL_SetWindowFullscreen(context_window, 0);
+			SDL_SetRelativeMouseMode(SDL_FALSE);
 		}
 	}
 }
