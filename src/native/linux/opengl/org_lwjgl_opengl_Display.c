@@ -60,6 +60,7 @@
 int is_running = 0;
 SDL_Window *context_window;
 SDL_GLContext context;
+int window_singleton_flag = 0;
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_DefaultSysImplementation_getJNIVersion
   (JNIEnv *env, jobject ignored) {
@@ -117,6 +118,8 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_openDisplay(JNIEnv *e
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_closeDisplay(JNIEnv *env, jclass clazz, jlong display) {
+	SDL_GL_DeleteContext(context);
+	SDL_DestroyWindow(context_window);
 	SDL_Quit();
 }
 
@@ -209,6 +212,15 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetInputFocus(JNIEnv 
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv *env, jclass clazz, jlong display, jint screen, jobject peer_info_handle, jobject mode, jint window_mode, jint x, jint y, jboolean undecorated, jlong parent_handle, jboolean resizable) {
+	if (window_singleton_flag) {
+		fprintf(stderr, "=============================================\n");
+		fprintf(stderr, "Window has already been created.\n");
+		fprintf(stderr, "The wayland patch doesn't delete and recreate\n");
+		fprintf(stderr, "the window upon setting fullscreen\n");
+		fprintf(stderr, "=============================================\n");
+		fflush(stderr);
+		return (intptr_t)context_window;
+	}
 	if (!display) {
 		throwException(env, "SDL is not initialized");
 		return 0;
@@ -259,6 +271,7 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 		return 0;
 	}
 	is_running = 1;
+	window_singleton_flag = 1;
 	return (intptr_t)context_window;
 }
 
@@ -267,14 +280,6 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetWindowSize(JNIEnv 
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nDestroyWindow(JNIEnv *env, jclass clazz, jlong display, jlong window_ptr) {
-	// we cheat here as minecraft should only delete one window!
-	if (context != NULL) {
-		SDL_GL_DeleteContext(context);
-	}
-
-	if (context_window != NULL) {
-		SDL_DestroyWindow(context_window);
-	}
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nLockAWT(JNIEnv *env, jclass clazz) {
