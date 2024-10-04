@@ -110,10 +110,6 @@ static bool isXF86VidModeSupported(JNIEnv *env, Display *disp) {
 	return major_ver >= 2;
 }
 	
-JNIEXPORT jboolean JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nIsXrandrSupported(JNIEnv *env, jclass unused, jlong display) {
-	return JNI_FALSE;
-}
-
 JNIEXPORT jboolean JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nIsXF86VidModeSupported(JNIEnv *env, jclass unused, jlong display) {
 	return JNI_TRUE;
 }

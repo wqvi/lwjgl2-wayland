@@ -196,39 +196,8 @@ final class LinuxDisplay implements DisplayImplementation {
 	private static native ByteBuffer nGetCurrentGammaRamp(long display, int screen) throws LWJGLException;
 
 	private static int getBestDisplayModeExtension() {
-		int result;
-		if (isXrandrSupported()) {
-			LWJGLUtil.log("Using Xrandr for display mode switching");
-			result = XRANDR;
-		} else if (isXF86VidModeSupported()) {
-			LWJGLUtil.log("Using XF86VidMode for display mode switching");
-			result = XF86VIDMODE;
-		} else {
-			LWJGLUtil.log("No display mode extensions available");
-			result = NONE;
-		}
-		return result;
+		return XF86VIDMODE;
 	}
-
-	private static boolean isXrandrSupported() {
-		if (Display.getPrivilegedBoolean("LWJGL_DISABLE_XRANDR"))
-			return false;
-		lockAWT();
-		try {
-			incDisplay();
-			try {
-				return nIsXrandrSupported(getDisplay());
-			} finally {
-				decDisplay();
-			}
-		} catch (LWJGLException e) {
-			LWJGLUtil.log("Got exception while querying Xrandr support: " + e);
-			return false;
-		} finally {
-			unlockAWT();
-		}
-	}
-	private static native boolean nIsXrandrSupported(long display) throws LWJGLException;
 
 	private static boolean isXF86VidModeSupported() {
 		lockAWT();
@@ -382,12 +351,12 @@ final class LinuxDisplay implements DisplayImplementation {
 
 	private void grabKeyboard() {
 		if (!keyboard_grabbed) {
-			int res = nGrabKeyboard(getDisplay(), getWindow());
+			int res = nGrabKeyboard(getWindow());
 			if (res == GrabSuccess)
 				keyboard_grabbed = true;
 		}
 	}
-	static native int nGrabKeyboard(long display, long window);
+	static native int nGrabKeyboard(long window);
 
 	private void grabPointer() {
 		if (!pointer_grabbed) {
