@@ -343,20 +343,19 @@ final class LinuxDisplay implements DisplayImplementation {
 
 	private void ungrabKeyboard() {
 		if (keyboard_grabbed) {
-			nUngrabKeyboard(getDisplay());
+			nUngrabKeyboard();
 			keyboard_grabbed = false;
 		}
 	}
-	static native int nUngrabKeyboard(long display);
+	static native void nUngrabKeyboard();
 
 	private void grabKeyboard() {
 		if (!keyboard_grabbed) {
-			int res = nGrabKeyboard(getWindow());
-			if (res == GrabSuccess)
-				keyboard_grabbed = true;
+			nGrabKeyboard();
+			keyboard_grabbed = true;
 		}
 	}
-	static native int nGrabKeyboard(long window);
+	static native void nGrabKeyboard();
 
 	private void grabPointer() {
 		if (!pointer_grabbed) {
