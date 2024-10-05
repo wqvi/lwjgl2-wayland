@@ -55,6 +55,7 @@
 extern SDL_Window *context_window;
 
 #define NUM_XRANDR_RETRIES 5
+#define BPP (24)
 
 typedef struct {
 	int width;
@@ -298,19 +299,6 @@ JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetCurrentGammaRam
 	return ramp_buffer;
 }
 
-static void setGamma(JNIEnv *env, Display *disp, int screen, jobject ramp_buffer) {
-	if (ramp_buffer == NULL)
-		return;
-	unsigned short *ramp_ptr = (unsigned short *)(*env)->GetDirectBufferAddress(env, ramp_buffer);
-	jlong capacity = (*env)->GetDirectBufferCapacity(env, ramp_buffer);
-	int size = capacity/(sizeof(unsigned short)*3);
-	if (size == 0)
-		return;
-	if (XF86VidModeSetGammaRamp(disp, screen, size, ramp_ptr, ramp_ptr + size, ramp_ptr + size*2) == False) {
-		throwException(env, "Could not set gamma ramp.");
-	}
-}
-
 static bool switchDisplayMode(JNIEnv * env, Display *disp, int screen, jint extension, jobject mode) {
 	if (mode == NULL) {
 		throwException(env, "mode must be non-null");
@@ -330,65 +318,6 @@ static bool switchDisplayMode(JNIEnv * env, Display *disp, int screen, jint exte
 	return true;
 }
 
-static jobjectArray getAvailableDisplayModes(JNIEnv * env, Display *disp, int screen, jint extension) {
-	int num_modes, i;
-	mode_info *avail_modes;
-	int bpp = XDefaultDepth(disp, screen);
-	avail_modes = getDisplayModes(disp, screen, extension, &num_modes);
-	if (avail_modes == NULL) {
-		printfDebugJava(env, "Could not get display modes");
-		return NULL;
-	}
-	// Allocate an array of DisplayModes big enough
-	jclass displayModeClass = (*env)->FindClass(env, "org/lwjgl/opengl/DisplayMode");
-	jobjectArray ret = (*env)->NewObjectArray(env, num_modes, displayModeClass, NULL);
-	jmethodID displayModeConstructor = (*env)->GetMethodID(env, displayModeClass, "<init>", "(IIII)V");
-
-	for (i = 0; i < num_modes; i++) {
-		jobject displayMode = (*env)->NewObject(env, displayModeClass, displayModeConstructor, avail_modes[i].width, avail_modes[i].height, bpp, avail_modes[i].freq);
-		(*env)->SetObjectArrayElement(env, ret, i, displayMode);
-	}
-	free(avail_modes);
-	return ret;
-}
-
-static jobject getCurrentXRandrMode(JNIEnv * env, Display *disp, int screen) {
-	Drawable root_window = RootWindow(disp, screen);
-	XRRScreenConfiguration *config = XRRGetScreenInfo(disp, root_window);
-	if (config == NULL) {
-		throwException(env, "Could not get current screen configuration.");
-		return NULL;
-	}
-	short rate = XRRConfigCurrentRate(config);
-	Rotation current_rotation;
-	SizeID size_index = XRRConfigCurrentConfiguration(config, &current_rotation);
-	int n_sizes;
-	XRRScreenSize *sizes = XRRConfigSizes(config, &n_sizes);
-	if (size_index >= n_sizes) {
-		throwFormattedException(env, "Xrandr current index (%d) is larger than or equals to the number of sizes (%d).", size_index, n_sizes);
-		XRRFreeScreenConfigInfo(config);
-		return NULL;
-	}
-	XRRScreenSize current_size = sizes[size_index];
-	XRRFreeScreenConfigInfo(config);
-	int bpp = XDefaultDepth(disp, screen);
-	jclass displayModeClass = (*env)->FindClass(env, "org/lwjgl/opengl/DisplayMode");
-	jmethodID displayModeConstructor = (*env)->GetMethodID(env, displayModeClass, "<init>", "(IIII)V");
-	jobject displayMode = (*env)->NewObject(env, displayModeClass, displayModeConstructor, current_size.width, current_size.height, bpp, rate);
-	return displayMode;
-}
-
-JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetCurrentXRandrMode(JNIEnv *env, jclass unused, jlong display, jint screen) {
-	jclass displayModeClass = (*env)->FindClass(env, "org/lwjgl/opengl/DisplayMode");
-	jmethodID displayModeConstructor = (*env)->GetMethodID(env, displayModeClass, "<init>", "(IIII)V");
-
-	SDL_DisplayMode dm;
-	SDL_GetCurrentDisplayMode(0, &dm);
-
-	jobject displayMode = (*env)->NewObject(env, displayModeClass, displayModeConstructor, 640, 480, 24, 60);
-	return displayMode;
-}
-
 JNIEXPORT jobjectArray JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetAvailableDisplayModes(JNIEnv *env, jclass clazz, jlong display, jint screen, jint extension) {
 	jclass displayModeClass = (*env)->FindClass(env, "org/lwjgl/opengl/DisplayMode");
 	jobjectArray ret = (*env)->NewObjectArray(env, 1, displayModeClass, NULL);
@@ -397,9 +326,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetAvailableD
 	SDL_DisplayMode dm;
 	SDL_GetCurrentDisplayMode(0, &dm);
 
-	int bbp = 24;
-
-	jobject displayMode = (*env)->NewObject(env, displayModeClass, displayModeConstructor, dm.w, dm.h, bbp, dm.refresh_rate);
+	jobject displayMode = (*env)->NewObject(env, displayModeClass, displayModeConstructor, dm.w, dm.h, BPP, dm.refresh_rate);
 	(*env)->SetObjectArrayElement(env, ret, 0, displayMode);
 	return ret;
 }
@@ -428,7 +355,5 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetGammaRampLength(JN
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetGammaRamp(JNIEnv *env, jclass clazz, jlong display, jint screen, jobject gamma_buffer) {
-	Display *disp = (Display *)(intptr_t)display;
-	setGamma(env, disp, screen, gamma_buffer);
 }
 

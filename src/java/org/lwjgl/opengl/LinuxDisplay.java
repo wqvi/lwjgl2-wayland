@@ -412,20 +412,15 @@ final class LinuxDisplay implements DisplayImplementation {
 	}
 
 	public void createWindow(final DrawableLWJGL drawable, DisplayMode mode, Canvas parent, int x, int y) throws LWJGLException {
-		current_window_mode = getWindowMode(Display.isFullscreen());
-		window_x = x;
-		window_y = y;
 		window_width = mode.getWidth();
 		window_height = mode.getHeight();
-		current_window = nCreateWindow(getDisplay(), getDefaultScreen(), null, mode, current_window_mode, x, y, window_width, window_height);
+		current_window = nCreateWindow(Display.isFullscreen(), x, y, window_width, window_height);
 	}
 
-	private static native long nCreateWindow(long display, int screen, ByteBuffer peer_info_handle, DisplayMode mode, int window_mode, int x, int y, int width, int height) throws LWJGLException;
-	private static native long getRootWindow(long display, int screen);
+	private static native long nCreateWindow(boolean fullscreen, int x, int y, int width, int height) throws LWJGLException;
 	private static native boolean hasProperty(long display, long window, long property);
 	private static native long getParentWindow(long display, long window) throws LWJGLException;
 	private static native int getChildCount(long display, long window) throws LWJGLException;
-	private static native void mapRaised(long display, long window);
 	private static native void reparentWindow(long display, long window, long parent, int x, int y);
 	private static native long nGetInputFocus(long display) throws LWJGLException;
 	private static native void nSetInputFocus(long display, long window, long time);
@@ -608,48 +603,12 @@ final class LinuxDisplay implements DisplayImplementation {
 		}
 	}
 
-	private static DisplayMode getCurrentXRandrMode() throws LWJGLException {
-		lockAWT();
-		try {
-			incDisplay();
-			try {
-				return nGetCurrentXRandrMode(getDisplay(), getDefaultScreen());
-			} finally {
-				decDisplay();
-			}
-		} finally {
-			unlockAWT();
-		}
-	}
-
-	/** Assumes extension == XRANDR */
-	private static native DisplayMode nGetCurrentXRandrMode(long display, int screen) throws LWJGLException;
-
 	public void setTitle(String title) {
-		lockAWT();
-		try {
-			final ByteBuffer titleText = MemoryUtil.encodeUTF8(title);
-			nSetTitle(getDisplay(), getWindow(), MemoryUtil.getAddress(titleText), titleText.remaining() - 1);
-		} finally {
-			unlockAWT();
-		}
+		final ByteBuffer titleText = MemoryUtil.encodeUTF8(title);
+		nSetTitle(MemoryUtil.getAddress(titleText));
 	}
-	private static native void nSetTitle(long display, long window, long title, int len);
+	private static native void nSetTitle(long title);
 	
-	/** the WM_CLASS hint is needed by some WM's e.g. gnome shell */
-	private void setClassHint(String wm_name, String wm_class) {
-		lockAWT();
-		try {
-			final ByteBuffer nameText = MemoryUtil.encodeUTF8(wm_name);
-			final ByteBuffer classText = MemoryUtil.encodeUTF8(wm_class);
-			
-			nSetClassHint(getDisplay(), getWindow(), MemoryUtil.getAddress(nameText), MemoryUtil.getAddress(classText));
-		} finally {
-			unlockAWT();
-		}
-	}
-	private static native void nSetClassHint(long display, long window, long wm_name, long wm_class);
-
 	public boolean isCloseRequested() {
 		boolean result = close_requested;
 		close_requested = false;
