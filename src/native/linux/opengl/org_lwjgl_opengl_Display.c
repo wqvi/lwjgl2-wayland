@@ -211,7 +211,7 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetInputFocus(JNIEnv
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetInputFocus(JNIEnv *env, jclass clazz, jlong display, jlong window_ptr, jlong time) {
 }
 
-JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv *env, jclass clazz, jlong display, jint screen, jobject peer_info_handle, jobject mode, jint window_mode, jint x, jint y, jboolean undecorated, jlong parent_handle, jboolean resizable) {
+JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv *env, jclass clazz, jlong display, jint screen, jobject peer_info_handle, jobject mode, jint window_mode, jint x, jint y, jint width, jint height) {
 	if (window_singleton_flag) {
 		fprintf(stderr, "=============================================\n");
 		fprintf(stderr, "Window has already been created.\n");
@@ -226,15 +226,7 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 		return 0;
 	}
 	
-	jclass cls_displayMode = (*env)->GetObjectClass(env, mode);
-	jfieldID fid_width = (*env)->GetFieldID(env, cls_displayMode, "width", "I");
-	jfieldID fid_height = (*env)->GetFieldID(env, cls_displayMode, "height", "I");
-	int width = (*env)->GetIntField(env, mode, fid_width);
-	int height = (*env)->GetIntField(env, mode, fid_height);
 	int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
-	/*if (resizable) {
-		flags |= SDL_WINDOW_RESIZABLE;
-	}*/
 	context_window = SDL_CreateWindow("lwjgl2-sdl-wayland",
 			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 			width, height,

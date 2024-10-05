@@ -113,9 +113,6 @@ final class LinuxDisplay implements DisplayImplementation {
 	private final LinuxEvent event_buffer = new LinuxEvent();
 	private final LinuxEvent tmp_event_buffer = new LinuxEvent();
 
-	/** Current mode swithcing API */
-	private int current_displaymode_extension = NONE;
-
 	/** Atom used for the pointer warp messages */
 	private long delete_atom;
 
@@ -315,15 +312,10 @@ final class LinuxDisplay implements DisplayImplementation {
 
 	private int getWindowMode(boolean fullscreen) throws LWJGLException {
 		if (fullscreen) {
-			if (current_displaymode_extension == XRANDR && isNetWMFullscreenSupported()) {
-				LWJGLUtil.log("Using NetWM for fullscreen window");
-				return FULLSCREEN_NETWM;
-			} else {
-				LWJGLUtil.log("Using legacy mode for fullscreen window");
-				return FULLSCREEN_LEGACY;
-			}
-		} else
+			return FULLSCREEN_LEGACY;
+		} else {
 			return WINDOWED;
+		}
 	}
 
 	static long getDisplay() {
@@ -420,86 +412,15 @@ final class LinuxDisplay implements DisplayImplementation {
 	}
 
 	public void createWindow(final DrawableLWJGL drawable, DisplayMode mode, Canvas parent, int x, int y) throws LWJGLException {
-		lockAWT();
-		try {
-			incDisplay();
-			try {
-				if ( drawable instanceof DrawableGLES )
-					peer_info = new LinuxDisplayPeerInfo();
-
-				ByteBuffer handle = peer_info.lockAndGetHandle();
-				try {
-					current_window_mode = getWindowMode(Display.isFullscreen());
-					
-					// Try to enable Lecagy FullScreen Support in Compiz, else
-					// we may have trouble with stuff overlapping our fullscreen window.
-					if ( current_window_mode != WINDOWED )
-						Compiz.setLegacyFullscreenSupport(true);
-					
-					// Setting _MOTIF_WM_HINTS in fullscreen mode is problematic for certain window
-					// managers. We do not set MWM_HINTS_DECORATIONS in fullscreen mode anymore,
-					// unless org.lwjgl.opengl.Window.undecorated_fs has been specified.
-					// See native/linux/org_lwjgl_opengl_Display.c, createWindow function.
-					boolean undecorated = Display.getPrivilegedBoolean("org.lwjgl.opengl.Window.undecorated") || (current_window_mode != WINDOWED && Display.getPrivilegedBoolean("org.lwjgl.opengl.Window.undecorated_fs"));
-					
-					this.parent = parent;
-					parent_window = parent != null ? getHandle(parent) : getRootWindow(getDisplay(), getDefaultScreen());
-					resizable = Display.isResizable();
-					resized = false;
-					window_x = x;
-					window_y = y;
-					window_width = mode.getWidth();
-					window_height = mode.getHeight();
-
-                                        // overwrite arguments x and y - superclass always uses 0,0 for fullscreen windows
-                                        // use the coordinates of XRandRs primary screen instead
-                                        // this is required to let the fullscreen window appear on the primary screen
-                                        if (mode.isFullscreenCapable()  && current_displaymode_extension == XRANDR) {
-                                            Screen primaryScreen = XRandR.DisplayModetoScreen(Display.getDisplayMode());
-                                            x = primaryScreen.xPos;
-                                            y = primaryScreen.yPos;
-                                        }
-
-					current_window = nCreateWindow(getDisplay(), getDefaultScreen(), handle, mode, current_window_mode, x, y, undecorated, parent_window, resizable);
-					
-					// Set the WM_CLASS hint which is needed by some WM's e.g. Gnome Shell
-					wm_class = Display.getPrivilegedString("LWJGL_WM_CLASS");
-					if (wm_class == null) wm_class = Display.getTitle();
-					setClassHint(Display.getTitle(), wm_class);
-					
-					mapRaised(getDisplay(), current_window);
-					xembedded = parent != null && isAncestorXEmbedded(parent_window);
-					blank_cursor = createBlankCursor();
-					current_cursor = None;
-					focused = false;
-					input_released = false;
-					pointer_grabbed = false;
-					keyboard_grabbed = false;
-					close_requested = false;
-					grab = false;
-					minimized = false;
-					dirty = true;
-
-					if ( drawable instanceof DrawableGLES )
-						((DrawableGLES)drawable).initialize(current_window, getDisplay(), EGL.EGL_WINDOW_BIT, (org.lwjgl.opengles.PixelFormat)drawable.getPixelFormat());
-
-					if (parent != null) {
-						parent.addFocusListener(focus_listener);
-						parent_focused = parent.isFocusOwner();
-						parent_focus_changed = true;
-					}
-				} finally {
-					peer_info.unlock();
-				}
-			} catch (LWJGLException e) {
-				decDisplay();
-				throw e;
-			}
-		} finally {
-			unlockAWT();
-		}
+		current_window_mode = getWindowMode(Display.isFullscreen());
+		window_x = x;
+		window_y = y;
+		window_width = mode.getWidth();
+		window_height = mode.getHeight();
+		current_window = nCreateWindow(getDisplay(), getDefaultScreen(), null, mode, current_window_mode, x, y, window_width, window_height);
 	}
-	private static native long nCreateWindow(long display, int screen, ByteBuffer peer_info_handle, DisplayMode mode, int window_mode, int x, int y, boolean undecorated, long parent_handle, boolean resizable) throws LWJGLException;
+
+	private static native long nCreateWindow(long display, int screen, ByteBuffer peer_info_handle, DisplayMode mode, int window_mode, int x, int y, int width, int height) throws LWJGLException;
 	private static native long getRootWindow(long display, int screen);
 	private static native boolean hasProperty(long display, long window, long property);
 	private static native long getParentWindow(long display, long window) throws LWJGLException;
@@ -579,17 +500,7 @@ final class LinuxDisplay implements DisplayImplementation {
 	}
 
 	private void switchDisplayModeOnTmpDisplay(DisplayMode mode) throws LWJGLException {
-                if (current_displaymode_extension == XRANDR) {
-                        // let Xrandr set the display mode
-                        XRandR.setConfiguration(false, XRandR.DisplayModetoScreen(mode));
-                } else {
-                        incDisplay();
-                        try {
-                                nSwitchDisplayMode(getDisplay(), getDefaultScreen(), current_displaymode_extension, mode);
-                        } finally {
-                                decDisplay();
-                        }
-                }
+		nSwitchDisplayMode(getDisplay(), getDefaultScreen(), XF86VIDMODE, mode);
 	}
 	private static native void nSwitchDisplayMode(long display, int screen, int extension, DisplayMode mode) throws LWJGLException;
 
@@ -604,30 +515,14 @@ final class LinuxDisplay implements DisplayImplementation {
 	static native long nInternAtom(long display, String atom_name, boolean only_if_exists);
 
 	public void resetDisplayMode() {
-		lockAWT();
 		try {
-			if( current_displaymode_extension == XRANDR )
-			{
-				AccessController.doPrivileged(new PrivilegedAction<Object>() {
-					public Object run() {
-						XRandR.restoreConfiguration();
-						return null;
-					}
-				});
-			}
-			else
-			{
-				switchDisplayMode(saved_mode);
-			}
-			if (isXF86VidModeSupported())
-				doSetGamma(saved_gamma);
-
-			Compiz.setLegacyFullscreenSupport(false);
+			switchDisplayMode(saved_mode);
+			doSetGamma(saved_gamma);
 		} catch (LWJGLException e) {
-			LWJGLUtil.log("Caught exception while resetting mode: " + e);
-		} finally {
-			unlockAWT();
+			e.printStackTrace();
 		}
+
+		Compiz.setLegacyFullscreenSupport(false);
 	}
 
 	public int getGammaRampLength() {
@@ -700,27 +595,10 @@ final class LinuxDisplay implements DisplayImplementation {
 			Compiz.init();
 
 			delete_atom = internAtom("WM_DELETE_WINDOW", false);
-			current_displaymode_extension = getBestDisplayModeExtension();
-			if (current_displaymode_extension == NONE)
-				throw new LWJGLException("No display mode extension is available");
 			DisplayMode[] modes = getAvailableDisplayModes();
 			if (modes == null || modes.length == 0)
 				throw new LWJGLException("No modes available");
-			switch (current_displaymode_extension) {
-				case XRANDR:
-					saved_mode = AccessController.doPrivileged(new PrivilegedAction<DisplayMode>() {
-						public DisplayMode run() {
-							XRandR.saveConfiguration();
-                                                        return XRandR.ScreentoDisplayMode(XRandR.getConfiguration());
-						}
-					});
-					break;
-				case XF86VIDMODE:
-					saved_mode = modes[0];
-					break;
-				default:
-					throw new LWJGLException("Unknown display mode extension: " + current_displaymode_extension);
-			}
+			saved_mode = modes[0];	
 			current_mode = saved_mode;
 			saved_gamma = getCurrentGammaRamp();
 			current_gamma = saved_gamma;
@@ -907,29 +785,13 @@ final class LinuxDisplay implements DisplayImplementation {
 	public DisplayMode[] getAvailableDisplayModes() throws LWJGLException {
 		lockAWT();
 		try {
-                        incDisplay();
-                        if (current_displaymode_extension == XRANDR) {
-                                // nGetAvailableDisplayModes cannot be trusted. Use it only for bitsPerPixel
-                                DisplayMode[] nDisplayModes = nGetAvailableDisplayModes(getDisplay(), getDefaultScreen(), current_displaymode_extension);
-                                int bpp = 24;
-                                if (nDisplayModes.length > 0) {
-                                    bpp = nDisplayModes[0].getBitsPerPixel();
-                                }
-                                // get the resolutions and frequencys from XRandR
-                                Screen[] resolutions = XRandR.getResolutions(XRandR.getScreenNames()[0]);
-                                DisplayMode[] modes = new DisplayMode[resolutions.length];
-                                for (int i = 0; i < modes.length; i++) {
-                                    modes[i] = new DisplayMode(resolutions[i].width, resolutions[i].height, bpp, resolutions[i].freq);
-                                }
-                                return modes;
-                        } else {
-                                try {
-                                        DisplayMode[] modes = nGetAvailableDisplayModes(getDisplay(), getDefaultScreen(), current_displaymode_extension);
-                                        return modes;
+                        
+                        try {
+                                       DisplayMode[] modes = nGetAvailableDisplayModes(getDisplay(), getDefaultScreen(), XF86VIDMODE);
+                                       return modes;
                                 } finally {
                                         decDisplay();
                                 }
-                        }
 		} finally {
 			unlockAWT();
 		}
@@ -1097,19 +959,7 @@ final class LinuxDisplay implements DisplayImplementation {
 		if (current_window_mode == FULLSCREEN_NETWM) {
 			nIconifyWindow(getDisplay(), getWindow(), getDefaultScreen());
 			try {
-				if( current_displaymode_extension == XRANDR )
-				{
-					AccessController.doPrivileged(new PrivilegedAction<Object>() {
-						public Object run() {
-							XRandR.restoreConfiguration();
-							return null;
-						}
-					});
-				}
-				else
-				{
-					switchDisplayModeOnTmpDisplay(saved_mode);
-				}
+				switchDisplayModeOnTmpDisplay(saved_mode);
 				setGammaRampOnTmpDisplay(saved_gamma);
 			} catch (LWJGLException e) {
 				LWJGLUtil.log("Failed to restore saved mode: " + e.getMessage());
