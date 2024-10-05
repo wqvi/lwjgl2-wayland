@@ -585,22 +585,12 @@ final class LinuxDisplay implements DisplayImplementation {
 	}
 
 	public DisplayMode init() throws LWJGLException {
-		lockAWT();
-		try {
-			Compiz.init();
-
-			delete_atom = internAtom("WM_DELETE_WINDOW", false);
-			DisplayMode[] modes = getAvailableDisplayModes();
-			if (modes == null || modes.length == 0)
-				throw new LWJGLException("No modes available");
-			saved_mode = modes[0];	
-			current_mode = saved_mode;
-			saved_gamma = getCurrentGammaRamp();
-			current_gamma = saved_gamma;
-			return saved_mode;
-		} finally {
-			unlockAWT();
-		}
+		Compiz.init();
+		delete_atom = internAtom("WM_DELETE_WINDOW", false);
+		DisplayMode[] modes = getAvailableDisplayModes();
+		saved_mode = modes[0];	
+		current_mode = saved_mode;
+		return saved_mode;
 	}
 
 	public void setTitle(String title) {
@@ -634,38 +624,10 @@ final class LinuxDisplay implements DisplayImplementation {
 		return peer_info;
 	}
 
-	private void relayEventToParent(LinuxEvent event_buffer, int event_mask) {
-		tmp_event_buffer.copyFrom(event_buffer);
-		tmp_event_buffer.setWindow(parent_window);
-		tmp_event_buffer.sendEvent(getDisplay(), parent_window, true, event_mask);
-	}
-
-	private void relayEventToParent(LinuxEvent event_buffer) {
-		if (parent == null)
-			return;
-		switch (event_buffer.getType()) {
-			case LinuxEvent.KeyPress:
-				relayEventToParent(event_buffer, KeyPressMask);
-				break;
-			case LinuxEvent.KeyRelease:
-				relayEventToParent(event_buffer, KeyPressMask);
-				break;
-			case LinuxEvent.ButtonPress:
-				if (xembedded || !focused) relayEventToParent(event_buffer, KeyPressMask);
-				break;
-			case LinuxEvent.ButtonRelease:
-				if (xembedded || !focused) relayEventToParent(event_buffer, KeyPressMask);
-				break;
-			default:
-				break;
-		}
-	}
-
 	private void processEvents() {
 		while (LinuxEvent.getPending(getDisplay()) > 0) {
 			event_buffer.nextEvent(getDisplay());
 			long event_window = event_buffer.getWindow();
-			relayEventToParent(event_buffer);
 			if (event_window != getWindow() || event_buffer.filterEvent(event_window) ||
 					(mouse != null && mouse.filterEvent(grab, shouldWarpPointer(), event_buffer)) ||
 					 (keyboard != null && keyboard.filterEvent(event_buffer)))
@@ -722,38 +684,17 @@ final class LinuxDisplay implements DisplayImplementation {
 	}
 
 	public void update() {
-		lockAWT();
-		try {
-			processEvents();
-			checkInput();
-		} finally {
-			unlockAWT();
-		}
+		processEvents();
+		checkInput();
 	}
 
 	public void reshape(int x, int y, int width, int height) {
-		lockAWT();
-		try {
-			nReshape(getDisplay(), getWindow(), x, y, width, height);
-		} finally {
-			unlockAWT();
-		}
+		nReshape(getDisplay(), getWindow(), x, y, width, height);
 	}
 	private static native void nReshape(long display, long window, int x, int y, int width, int height);
 
 	public DisplayMode[] getAvailableDisplayModes() throws LWJGLException {
-		lockAWT();
-		try {
-                        
-                        try {
-                                       DisplayMode[] modes = nGetAvailableDisplayModes(getDisplay(), getDefaultScreen(), XF86VIDMODE);
-                                       return modes;
-                                } finally {
-                                        decDisplay();
-                                }
-		} finally {
-			unlockAWT();
-		}
+                return nGetAvailableDisplayModes(getDisplay(), getDefaultScreen(), XF86VIDMODE);
 	}
 	private static native DisplayMode[] nGetAvailableDisplayModes(long display, int screen, int extension) throws LWJGLException;
 
