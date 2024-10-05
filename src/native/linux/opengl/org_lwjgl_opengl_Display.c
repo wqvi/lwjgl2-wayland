@@ -146,41 +146,31 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nReshape(JNIEnv *env, 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_synchronize(JNIEnv *env, jclass clazz, jlong display, jboolean synchronize) {
 }
 
-JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetX(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
+JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetX(JNIEnv *env, jclass unused) {
 	int x;
 	int y;
 	SDL_GetWindowPosition(context_window, &x, &y);
 	return x;
 }
 
-JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetY(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
+JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetY(JNIEnv *env, jclass unused) {
 	int x;
 	int y;
 	SDL_GetWindowPosition(context_window, &x, &y);
 	return y;
 }
 
-JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetWidth(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
-	if (!display_ptr) {
-		throwException(env, "SDL is not initialized");
-		return -1;
-	}
-	SDL_Window *window = (SDL_Window *)window_ptr;
+JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetWidth(JNIEnv *env, jclass unused) {
 	int w;
 	int h;
-	SDL_GL_GetDrawableSize(window, &w, &h);
+	SDL_GL_GetDrawableSize(context_window, &w, &h);
 	return w;
 }
 
-JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetHeight(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr) {
-	if (!display_ptr) {
-		throwException(env, "SDL is not initialized");
-		return -1;
-	}
-	SDL_Window *window = (SDL_Window *)window_ptr;
+JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetHeight(JNIEnv *env, jclass unused) {
 	int w;
 	int h;
-	SDL_GL_GetDrawableSize(window, &w, &h);
+	SDL_GL_GetDrawableSize(context_window, &w, &h);
 	return h;
 }
 
@@ -302,12 +292,7 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGrabKeyboard(JNIEnv *
 	SDL_SetWindowKeyboardGrab(context_window, SDL_TRUE);
 }
 
-JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGrabPointer(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr, jlong cursor_ptr) {
-	/*Display *disp = (Display *)(intptr_t)display_ptr;
-	Window win = (Window)window_ptr;
-	Cursor cursor = (Cursor)cursor_ptr;
-	int grab_mask = PointerMotionMask | ButtonPressMask | ButtonReleaseMask;
-	return XGrabPointer(disp, win, False, grab_mask, GrabModeAsync, GrabModeAsync, win, cursor, CurrentTime);*/
+JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGrabPointer(JNIEnv *env, jclass unused) {
 	return SDL_SetRelativeMouseMode(SDL_TRUE);
 }
 
@@ -318,9 +303,7 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetViewPort(JNIEnv *e
 	glViewport(0, 0, w, h);
 }
 
-JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nUngrabPointer(JNIEnv *env, jclass unused, jlong display_ptr) {
-	/*Display *disp = (Display *)(intptr_t)display_ptr;
-	return XUngrabPointer(disp, CurrentTime);*/
+JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nUngrabPointer(JNIEnv *env, jclass unused) {
 	return SDL_SetRelativeMouseMode(SDL_FALSE);
 }
 

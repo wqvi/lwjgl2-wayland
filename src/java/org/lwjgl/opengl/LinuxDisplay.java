@@ -351,7 +351,7 @@ final class LinuxDisplay implements DisplayImplementation {
 
 	private void grabPointer() {
 		if (!pointer_grabbed) {
-			int result = nGrabPointer(getDisplay(), getWindow(), None);
+			int result = nGrabPointer();
 			if (result == GrabSuccess) {
 				pointer_grabbed = true;
 				// make sure we have a centered window
@@ -361,16 +361,16 @@ final class LinuxDisplay implements DisplayImplementation {
 			}
 		}
 	}
-	static native int nGrabPointer(long display, long window, long cursor);
+	static native int nGrabPointer();
 	private static native void nSetViewPort(long display, long window, int screen);
 
 	private void ungrabPointer() {
 		if (pointer_grabbed) {
 			pointer_grabbed = false;
-			nUngrabPointer(getDisplay());
+			nUngrabPointer();
 		}
 	}
-	static native int nUngrabPointer(long display);
+	static native int nUngrabPointer();
 
 	private static boolean isFullscreen() {
 		return current_window_mode == FULLSCREEN_LEGACY || current_window_mode == FULLSCREEN_NETWM;
@@ -425,10 +425,10 @@ final class LinuxDisplay implements DisplayImplementation {
 	private static native long nGetInputFocus(long display) throws LWJGLException;
 	private static native void nSetInputFocus(long display, long window, long time);
 	private static native void nSetWindowSize(long display, long window, int width, int height, boolean resizable);
-	private static native int nGetX(long display, long window);
-	private static native int nGetY(long display, long window);
-	private static native int nGetWidth(long display, long window);
-	private static native int nGetHeight(long display, long window);
+	private static native int nGetX();
+	private static native int nGetY();
+	private static native int nGetWidth();
+	private static native int nGetHeight();
 
 	private static boolean isAncestorXEmbedded(long window) throws LWJGLException {
 		long xembed_atom = internAtom("_XEMBED_INFO", true);
@@ -655,11 +655,11 @@ final class LinuxDisplay implements DisplayImplementation {
 					dirty = true;
 					break;
 				case LinuxEvent.ConfigureNotify:
-					int x = nGetX(getDisplay(), getWindow());
-					int y = nGetY(getDisplay(), getWindow());
+					int x = nGetX();
+					int y = nGetY();
 					
-					int width = nGetWidth(getDisplay(), getWindow());
-					int height = nGetHeight(getDisplay(), getWindow());
+					int width = nGetWidth();
+					int height = nGetHeight();
 					
 					window_x = x;
 					window_y = y;
