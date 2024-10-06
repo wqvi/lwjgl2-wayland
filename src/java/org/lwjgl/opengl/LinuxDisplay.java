@@ -173,28 +173,6 @@ final class LinuxDisplay implements DisplayImplementation {
 		}
 	};
 
-	private static int getBestDisplayModeExtension() {
-		return XF86VIDMODE;
-	}
-
-	private static boolean isXF86VidModeSupported() {
-		lockAWT();
-		try {
-			incDisplay();
-			try {
-				return nIsXF86VidModeSupported(getDisplay());
-			} finally {
-				decDisplay();
-			}
-		} catch (LWJGLException e) {
-			LWJGLUtil.log("Got exception while querying XF86VM support: " + e);
-			return false;
-		} finally {
-			unlockAWT();
-		}
-	}
-	private static native boolean nIsXF86VidModeSupported(long display) throws LWJGLException;
-
 	/* Since Xlib is not guaranteed to be thread safe, we need a way to synchronize LWJGL
 	 * Xlib calls with AWT Xlib calls. Fortunately, JAWT implements Lock()/Unlock() to
 	 * do just that.
