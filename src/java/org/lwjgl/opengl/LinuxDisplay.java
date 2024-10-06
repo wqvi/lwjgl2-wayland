@@ -96,10 +96,7 @@ final class LinuxDisplay implements DisplayImplementation {
 	/** Current window mode */
 	private static int current_window_mode = WINDOWED;
 
-	/** Display mode switching API */
-	private static final int XRANDR = 10;
 	private static final int XF86VIDMODE = 11;
-	private static final int NONE = 12;
 
 	/** Current X11 Display pointer */
 	private static long display;
@@ -116,10 +113,6 @@ final class LinuxDisplay implements DisplayImplementation {
 	private long delete_atom;
 
 	private PeerInfo peer_info;
-
-	/** Saved gamma used to restore display settings */
-	private ByteBuffer saved_gamma;
-	private ByteBuffer current_gamma;
 
 	/** Saved mode to restore with */
 	private DisplayMode saved_mode;
