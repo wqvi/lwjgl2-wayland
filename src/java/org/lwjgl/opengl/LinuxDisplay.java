@@ -494,7 +494,6 @@ final class LinuxDisplay implements DisplayImplementation {
 	public void resetDisplayMode() {
 		try {
 			switchDisplayMode(saved_mode);
-			doSetGamma(saved_gamma);
 		} catch (LWJGLException e) {
 			e.printStackTrace();
 		}
@@ -503,60 +502,11 @@ final class LinuxDisplay implements DisplayImplementation {
 	}
 
 	public int getGammaRampLength() {
-		if (!isXF86VidModeSupported())
-			return 0;
-		lockAWT();
-		try {
-			try {
-				incDisplay();
-				try {
-					return nGetGammaRampLength(getDisplay(), getDefaultScreen());
-				} catch (LWJGLException e) {
-					LWJGLUtil.log("Got exception while querying gamma length: " + e);
-					return 0;
-				} finally {
-					decDisplay();
-				}
-			} catch (LWJGLException e) {
-				LWJGLUtil.log("Failed to get gamma ramp length: " + e);
-				return 0;
-			}
-		} finally {
-			unlockAWT();
-		}
+		return 0;
 	}
-	private static native int nGetGammaRampLength(long display, int screen) throws LWJGLException;
 
 	public void setGammaRamp(FloatBuffer gammaRamp) throws LWJGLException {
-		if (!isXF86VidModeSupported())
-			throw new LWJGLException("No gamma ramp support (Missing XF86VM extension)");
-		doSetGamma(convertToNativeRamp(gammaRamp));
 	}
-
-	private void doSetGamma(ByteBuffer native_gamma) throws LWJGLException {
-		lockAWT();
-		try {
-			setGammaRampOnTmpDisplay(native_gamma);
-			current_gamma = native_gamma;
-		} finally {
-			unlockAWT();
-		}
-	}
-
-	private static void setGammaRampOnTmpDisplay(ByteBuffer native_gamma) throws LWJGLException {
-		incDisplay();
-		try {
-			nSetGammaRamp(getDisplay(), getDefaultScreen(), native_gamma);
-		} finally {
-			decDisplay();
-		}
-	}
-	private static native void nSetGammaRamp(long display, int screen, ByteBuffer gammaRamp) throws LWJGLException;
-
-	private static ByteBuffer convertToNativeRamp(FloatBuffer ramp) throws LWJGLException {
-		return nConvertToNativeRamp(ramp, ramp.position(), ramp.remaining());
-	}
-	private static native ByteBuffer nConvertToNativeRamp(FloatBuffer ramp, int offset, int length) throws LWJGLException;
 
 	public String getAdapter() {
 		return null;
@@ -842,7 +792,6 @@ final class LinuxDisplay implements DisplayImplementation {
 			nIconifyWindow(getDisplay(), getWindow(), getDefaultScreen());
 			try {
 				switchDisplayModeOnTmpDisplay(saved_mode);
-				setGammaRampOnTmpDisplay(saved_gamma);
 			} catch (LWJGLException e) {
 				LWJGLUtil.log("Failed to restore saved mode: " + e.getMessage());
 			}
@@ -858,7 +807,6 @@ final class LinuxDisplay implements DisplayImplementation {
 		if (current_window_mode == FULLSCREEN_NETWM) {
 			try {
 				switchDisplayModeOnTmpDisplay(current_mode);
-				setGammaRampOnTmpDisplay(current_gamma);
 			} catch (LWJGLException e) {
 				LWJGLUtil.log("Failed to restore mode: " + e.getMessage());
 			}

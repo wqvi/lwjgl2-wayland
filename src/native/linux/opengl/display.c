@@ -266,25 +266,6 @@ static int getGammaRampLengthOfDisplay(JNIEnv *env, Display *disp, int screen) {
 	return ramp_size;
 }
 
-JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nConvertToNativeRamp(JNIEnv *env, jclass unused, jobject ramp_buffer, jint buffer_offset, jint length) {
-	const jfloat *ramp_ptr = (const jfloat *)(*env)->GetDirectBufferAddress(env, ramp_buffer) + buffer_offset;
-	jobject native_ramp = newJavaManagedByteBuffer(env, length*3*sizeof(unsigned short));
-	if (native_ramp == NULL) {
-		throwException(env, "Failed to allocate gamma ramp buffer");
-		return NULL;
-	}
-	unsigned short *native_ramp_ptr = (unsigned short *)(*env)->GetDirectBufferAddress(env, native_ramp);
-	int i;
-	for (i = 0; i < length; i++) {
-		float scaled_gamma = ramp_ptr[i]*0xffff;
-		short scaled_gamma_short = (unsigned short)roundf(scaled_gamma);
-		native_ramp_ptr[i] = scaled_gamma_short;
-		native_ramp_ptr[i + length] = scaled_gamma_short;
-		native_ramp_ptr[i + length*2] = scaled_gamma_short;
-	}
-	return native_ramp;
-}
-
 static bool switchDisplayMode(JNIEnv * env, Display *disp, int screen, jint extension, jobject mode) {
 	if (mode == NULL) {
 		throwException(env, "mode must be non-null");
@@ -334,12 +315,3 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSwitchDisplayMode(JNI
 		}
 	}
 }
-
-JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetGammaRampLength(JNIEnv *env, jclass clazz, jlong display_ptr, jint screen) {
-	Display *disp = (Display *)(intptr_t)display_ptr;
-	return (jint)getGammaRampLengthOfDisplay(env, disp, screen);
-}
-
-JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetGammaRamp(JNIEnv *env, jclass clazz, jlong display, jint screen, jobject gamma_buffer) {
-}
-
