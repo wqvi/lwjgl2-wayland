@@ -256,26 +256,6 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetWindowSize(JNIEnv 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nDestroyWindow(JNIEnv *env, jclass clazz, jlong display, jlong window_ptr) {
 }
 
-JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nLockAWT(JNIEnv *env, jclass clazz) {
-	/*JAWT jawt;
-	jawt.version = JAWT_VERSION_1_4;
-	if (JAWT_GetAWT(env, &jawt) != JNI_TRUE) {
-		throwException(env, "GetAWT failed");
-		return;
-	}
-	jawt.Lock(env);*/
-}
-
-JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nUnlockAWT(JNIEnv *env, jclass clazz) {
-	/*JAWT jawt;
-	jawt.version = JAWT_VERSION_1_4;
-	if (JAWT_GetAWT(env, &jawt) != JNI_TRUE) {
-		throwException(env, "GetAWT failed");
-		return;
-	}
-	jawt.Unlock(env);*/
-}
-
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetWindowIcon
   (JNIEnv *env, jclass clazz, jlong display, jlong window_ptr, jobject icons_buffer, jint icons_buffer_size)
 {
