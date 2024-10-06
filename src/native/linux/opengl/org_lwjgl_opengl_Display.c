@@ -170,21 +170,6 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetHeight(JNIEnv *env
 	return h;
 }
 
-JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_reparentWindow(JNIEnv *env, jclass unused, jlong display, jlong window_ptr, jlong parent_ptr, jint x, jint y) {
-}
-
-JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_getParentWindow(JNIEnv *env, jclass unused, jlong display, jlong window_ptr) {
-	return window_ptr;
-}
-
-JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxDisplay_getChildCount(JNIEnv *env, jclass unused, jlong display, jlong window_ptr) {
-	return 0;
-}
-
-JNIEXPORT jboolean JNICALL Java_org_lwjgl_opengl_LinuxDisplay_hasProperty(JNIEnv *env, jclass unusued, jlong display, jlong window_ptr, jlong property_ptr) {
-	return JNI_TRUE;
-}
-
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetInputFocus(JNIEnv *env, jclass unused, jlong display_ptr) {
 	return (intptr_t)context_window;
 }

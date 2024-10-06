@@ -328,16 +328,14 @@ final class LinuxDisplay implements DisplayImplementation {
 	}
 
 	public void createWindow(final DrawableLWJGL drawable, DisplayMode mode, Canvas parent, int x, int y) throws LWJGLException {
+		window_x = x;
+		window_y = y;
 		window_width = mode.getWidth();
 		window_height = mode.getHeight();
 		current_window = nCreateWindow(Display.isFullscreen(), x, y, window_width, window_height);
 	}
 
 	private static native long nCreateWindow(boolean fullscreen, int x, int y, int width, int height) throws LWJGLException;
-	private static native boolean hasProperty(long display, long window, long property);
-	private static native long getParentWindow(long display, long window) throws LWJGLException;
-	private static native int getChildCount(long display, long window) throws LWJGLException;
-	private static native void reparentWindow(long display, long window, long parent, int x, int y);
 	private static native long nGetInputFocus(long display) throws LWJGLException;
 	private static native void nSetInputFocus(long display, long window, long time);
 	private static native void nSetWindowSize(long display, long window, int width, int height, boolean resizable);
@@ -345,19 +343,6 @@ final class LinuxDisplay implements DisplayImplementation {
 	private static native int nGetY();
 	private static native int nGetWidth();
 	private static native int nGetHeight();
-
-	private static boolean isAncestorXEmbedded(long window) throws LWJGLException {
-		long xembed_atom = internAtom("_XEMBED_INFO", true);
-		if (xembed_atom != None) {
-			long w = window;
-			while (w != None) {
-				if (hasProperty(getDisplay(), w, xembed_atom))
-					return true;
-				w = getParentWindow(getDisplay(), w);
-			}
-		}
-		return false;
-	}
 
 	private static long getHandle(Canvas parent) throws LWJGLException {
 		AWTCanvasImplementation awt_impl = AWTGLCanvas.createImplementation();
@@ -652,34 +637,6 @@ final class LinuxDisplay implements DisplayImplementation {
 	 * @param window - the window handle to test
 	 */
 	private boolean isParentWindowActive(long window) {
-		try {
-			// parent window already active as window is current_window
-			if (window == current_window) return true;
-
-			// xembed focus proxy will have no children
-			if (getChildCount(getDisplay(), window) != 0) return false;
-
-			// get parent, will be xembed embedder window and ancestor of current_window
-			long parent_window = getParentWindow(getDisplay(), window);
-
-			// parent must not be None
-			if (parent_window == None) return false;
-
-			// scroll current_window's ancestors to find parent_window
-			long w = current_window;
-
-			while (w != None) {
-				w = getParentWindow(getDisplay(), w);
-				if (w == parent_window) {
-					parent_proxy_focus_window = window; // save focus proxy window
-					return true;
-				}
-			}
-		} catch (LWJGLException e) {
-			LWJGLUtil.log("Failed to detect if parent window is active: " + e.getMessage());
-			return true; // on failure assume still active
-		}
-
 		return false; // failed to find an active parent window
 	}
 
