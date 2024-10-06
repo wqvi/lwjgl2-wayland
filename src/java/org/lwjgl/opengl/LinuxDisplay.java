@@ -174,24 +174,6 @@ final class LinuxDisplay implements DisplayImplementation {
 		}
 	};
 
-	private static ByteBuffer getCurrentGammaRamp() throws LWJGLException {
-		lockAWT();
-		try {
-			incDisplay();
-			try {
-				if (isXF86VidModeSupported())
-					return nGetCurrentGammaRamp(getDisplay(), getDefaultScreen());
-				else
-					return null;
-			} finally {
-				decDisplay();
-			}
-		} finally {
-			unlockAWT();
-		}
-	}
-	private static native ByteBuffer nGetCurrentGammaRamp(long display, int screen) throws LWJGLException;
-
 	private static int getBestDisplayModeExtension() {
 		return XF86VIDMODE;
 	}

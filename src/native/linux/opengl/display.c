@@ -285,20 +285,6 @@ JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nConvertToNativeRam
 	return native_ramp;
 }
 
-JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetCurrentGammaRamp(JNIEnv *env, jclass unused, jlong display, jint screen) {
-	size_t mem_size = sizeof(unsigned short) * 3 * 0;
-
-	jobject ramp_buffer = newJavaManagedByteBuffer(env, mem_size);
-	if (ramp_buffer == NULL) {
-		throwException(env, "Could not allocate gamma ramp buffer");
-		return NULL;
-	}
-
-	printfDebugJava(env, "Gamma control is a privileged wayland protocol.");
-
-	return ramp_buffer;
-}
-
 static bool switchDisplayMode(JNIEnv * env, Display *disp, int screen, jint extension, jobject mode) {
 	if (mode == NULL) {
 		throwException(env, "mode must be non-null");
