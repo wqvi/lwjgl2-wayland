@@ -203,7 +203,8 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 		return (intptr_t)context_window;
 	}
 	
-	int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+	int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+		| SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS | SDL_WINDOW_ALWAYS_ON_TOP;
 	if (fullscreen) {
 		flags |= SDL_WINDOW_FULLSCREEN;
 	}
