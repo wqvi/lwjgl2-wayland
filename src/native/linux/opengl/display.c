@@ -69,11 +69,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nGetAvailableD
 	return ret;
 }
 
-JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSwitchDisplayMode(JNIEnv *env, jclass clazz, jlong display, jint screen, jint extension, jobject mode) {
-	jclass cls_displayMode = (*env)->GetObjectClass(env, mode);
-	jfieldID fid_fullscreen = (*env)->GetFieldID(env, cls_displayMode, "fullscreen", "Z");
-
-	int fullscreen = (*env)->GetBooleanField(env, mode, fid_fullscreen);
+JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSwitchDisplayMode(JNIEnv *env, jclass clazz, jboolean fullscreen) {
 	if (fullscreen) {
 		SDL_SetWindowFullscreen(context_window, SDL_WINDOW_FULLSCREEN);
 		SDL_SetRelativeMouseMode(SDL_FALSE);

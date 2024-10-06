@@ -399,17 +399,10 @@ final class LinuxDisplay implements DisplayImplementation {
 	static native void nDestroyWindow(long display, long window);
 
 	public void switchDisplayMode(DisplayMode mode) throws LWJGLException {
-		try {
-			switchDisplayModeOnTmpDisplay(mode);
-			current_mode = mode;
-		} finally {
-		}
+		nSwitchDisplayMode(mode.isFullscreenCapable());
+		current_mode = mode;
 	}
-
-	private void switchDisplayModeOnTmpDisplay(DisplayMode mode) throws LWJGLException {
-		nSwitchDisplayMode(getDisplay(), getDefaultScreen(), XF86VIDMODE, mode);
-	}
-	private static native void nSwitchDisplayMode(long display, int screen, int extension, DisplayMode mode) throws LWJGLException;
+	private static native void nSwitchDisplayMode(boolean fullscreen) throws LWJGLException;
 
 	private static long internAtom(String atom_name, boolean only_if_exists) throws LWJGLException {
 		incDisplay();
