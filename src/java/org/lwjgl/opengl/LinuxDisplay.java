@@ -91,10 +91,10 @@ final class LinuxDisplay implements DisplayImplementation {
 
 	/** Window mode enum */
 	private static final int FULLSCREEN_LEGACY = 1;
-	private static final int WINDOWED = 3;
+	private static final int WINDOWED = 0;
 
 	/** Current window mode */
-	private static int current_window_mode = WINDOWED;
+	private static boolean fullscreen = false;
 
 	private static final int XF86VIDMODE = 11;
 
@@ -116,8 +116,6 @@ final class LinuxDisplay implements DisplayImplementation {
 
 	/** Saved mode to restore with */
 	private DisplayMode saved_mode;
-	private DisplayMode current_mode;
-
 
 	private boolean keyboard_grabbed;
 	private boolean pointer_grabbed;
@@ -226,14 +224,6 @@ final class LinuxDisplay implements DisplayImplementation {
 	static native long openDisplay() throws LWJGLException;
 	static native void closeDisplay(long display);
 
-	private int getWindowMode(boolean fullscreen) throws LWJGLException {
-		if (fullscreen) {
-			return FULLSCREEN_LEGACY;
-		} else {
-			return WINDOWED;
-		}
-	}
-
 	static long getDisplay() {
 		if (display_connection_usage_count <= 0)
 			throw new InternalError("display_connection_usage_count = " + display_connection_usage_count);
@@ -271,7 +261,7 @@ final class LinuxDisplay implements DisplayImplementation {
 			if (result == GrabSuccess) {
 				pointer_grabbed = true;
 				// make sure we have a centered window
-				if (isLegacyFullscreen()) {
+				if (fullscreen) {
 					nSetViewPort(getDisplay(), getWindow(), getDefaultScreen());
 				}
 			}
@@ -289,7 +279,7 @@ final class LinuxDisplay implements DisplayImplementation {
 	static native int nUngrabPointer();
 
 	private static boolean isFullscreen() {
-		return current_window_mode == FULLSCREEN_LEGACY;
+		return fullscreen;
 	}
 
 	private boolean shouldGrab() {
@@ -297,7 +287,7 @@ final class LinuxDisplay implements DisplayImplementation {
 	}
 
 	private void updatePointerGrab() {
-		if (isFullscreen() || shouldGrab()) {
+		if (shouldGrab()) {
 			grabPointer();
 		} else {
 			ungrabPointer();
@@ -316,12 +306,8 @@ final class LinuxDisplay implements DisplayImplementation {
 	}
 	private static native void nDefineCursor(long display, long window, long cursor_handle);
 
-	private static boolean isLegacyFullscreen() {
-		return current_window_mode == FULLSCREEN_LEGACY;
-	}
-
 	private void updateKeyboardGrab() {
-		if (isLegacyFullscreen())
+		if (fullscreen)
 			grabKeyboard();
 		else
 			ungrabKeyboard();
@@ -332,7 +318,8 @@ final class LinuxDisplay implements DisplayImplementation {
 		window_y = y;
 		window_width = mode.getWidth();
 		window_height = mode.getHeight();
-		current_window = nCreateWindow(Display.isFullscreen(), x, y, window_width, window_height);
+		fullscreen = mode.isFullscreenCapable();
+		current_window = nCreateWindow(fullscreen, x, y, window_width, window_height);
 	}
 
 	private static native long nCreateWindow(boolean fullscreen, int x, int y, int width, int height) throws LWJGLException;
@@ -376,7 +363,7 @@ final class LinuxDisplay implements DisplayImplementation {
 			nDestroyWindow(getDisplay(), getWindow());
 			decDisplay();
 
-			if ( current_window_mode != WINDOWED )
+			if (!fullscreen)
 				Compiz.setLegacyFullscreenSupport(false);
 		} finally {
 		}
@@ -384,8 +371,6 @@ final class LinuxDisplay implements DisplayImplementation {
 	static native void nDestroyWindow(long display, long window);
 
 	public void switchDisplayMode(DisplayMode mode) throws LWJGLException {
-		nSwitchDisplayMode(mode.isFullscreenCapable());
-		current_mode = mode;
 	}
 	private static native void nSwitchDisplayMode(boolean fullscreen) throws LWJGLException;
 
@@ -401,7 +386,7 @@ final class LinuxDisplay implements DisplayImplementation {
 
 	public void resetDisplayMode() {
 		try {
-			switchDisplayMode(saved_mode);
+			nSwitchDisplayMode(fullscreen);
 		} catch (LWJGLException e) {
 			e.printStackTrace();
 		}
@@ -429,7 +414,7 @@ final class LinuxDisplay implements DisplayImplementation {
 		delete_atom = internAtom("WM_DELETE_WINDOW", false);
 		DisplayMode[] modes = getAvailableDisplayModes();
 		saved_mode = modes[0];	
-		current_mode = saved_mode;
+		fullscreen = saved_mode.isFullscreenCapable();
 		return saved_mode;
 	}
 
@@ -450,7 +435,7 @@ final class LinuxDisplay implements DisplayImplementation {
 	}
 
 	public boolean isActive() {
-		return focused || isLegacyFullscreen();
+		return focused || fullscreen;
 	}
 
 	public boolean isDirty() {
@@ -654,7 +639,7 @@ final class LinuxDisplay implements DisplayImplementation {
 	}
 
 	private void releaseInput() {
-		if (isLegacyFullscreen() || input_released)
+		if (fullscreen || input_released)
 			return;
 		if ( keyboard != null )
 			keyboard.releaseAll();
@@ -664,7 +649,7 @@ final class LinuxDisplay implements DisplayImplementation {
 	private static native void nIconifyWindow(long display, long window, int screen);
 
 	private void acquireInput() {
-		if (isLegacyFullscreen() || !input_released)
+		if (fullscreen || !input_released)
 			return;
 		input_released = false;
 		updateInputGrab();
