@@ -331,17 +331,6 @@ final class LinuxDisplay implements DisplayImplementation {
 	private static native int nGetWidth();
 	private static native int nGetHeight();
 
-	private static long getHandle(Canvas parent) throws LWJGLException {
-		AWTCanvasImplementation awt_impl = AWTGLCanvas.createImplementation();
-		LinuxPeerInfo parent_peer_info = (LinuxPeerInfo)awt_impl.createPeerInfo(parent, null, null);
-		ByteBuffer parent_peer_info_handle = parent_peer_info.lockAndGetHandle();
-		try {
-			return parent_peer_info.getDrawable();
-		} finally {
-			parent_peer_info.unlock();
-		}
-	}
-
 	private void updateInputGrab() {
 		updatePointerGrab();
 		updateKeyboardGrab();
@@ -349,24 +338,15 @@ final class LinuxDisplay implements DisplayImplementation {
 
 	public void destroyWindow() {
 		try {
-			if (parent != null) {
-				parent.removeFocusListener(focus_listener);
-			}
-			try {
-				setNativeCursor(null);
-			} catch (LWJGLException e) {
-				LWJGLUtil.log("Failed to reset cursor: " + e.getMessage());
-			}
-			nDestroyCursor(getDisplay(), blank_cursor);
-			blank_cursor = None;
-			ungrabKeyboard();
-			nDestroyWindow(getDisplay(), getWindow());
-			decDisplay();
-
-			if (!fullscreen)
-				Compiz.setLegacyFullscreenSupport(false);
-		} finally {
+			setNativeCursor(null);
+		} catch (LWJGLException e) {
+			LWJGLUtil.log("Failed to reset cursor: " + e.getMessage());
 		}
+		nDestroyCursor(getDisplay(), blank_cursor);
+		blank_cursor = None;
+		ungrabKeyboard();
+		nDestroyWindow(getDisplay(), getWindow());
+		decDisplay();
 	}
 	static native void nDestroyWindow(long display, long window);
 
