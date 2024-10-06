@@ -134,10 +134,6 @@ JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nSetTitle(JNIEnv * env
 	SDL_SetWindowTitle(context_window, str);
 }
 
-JNIEXPORT jboolean JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nIsNetWMFullscreenSupported(JNIEnv *env, jclass unused, jlong display, jint screen) {
-	return JNI_TRUE;
-}
-
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nReshape(JNIEnv *env, jclass clazz, jlong display, jlong window_ptr, jint x, jint y, jint width, jint height) {
 	SDL_Window *window = (SDL_Window *)window_ptr;
 	SDL_SetWindowSize(window, width, height);

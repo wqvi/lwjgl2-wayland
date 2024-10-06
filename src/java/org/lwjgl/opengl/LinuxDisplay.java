@@ -91,7 +91,6 @@ final class LinuxDisplay implements DisplayImplementation {
 
 	/** Window mode enum */
 	private static final int FULLSCREEN_LEGACY = 1;
-	private static final int FULLSCREEN_NETWM = 2;
 	private static final int WINDOWED = 3;
 
 	/** Current window mode */
@@ -195,26 +194,6 @@ final class LinuxDisplay implements DisplayImplementation {
 		}
 	}
 	private static native boolean nIsXF86VidModeSupported(long display) throws LWJGLException;
-
-	private static boolean isNetWMFullscreenSupported() throws LWJGLException {
-		if (Display.getPrivilegedBoolean("LWJGL_DISABLE_NETWM"))
-			return false;
-		lockAWT();
-		try {
-			incDisplay();
-			try {
-				return nIsNetWMFullscreenSupported(getDisplay(), getDefaultScreen());
-			} finally {
-				decDisplay();
-			}
-		} catch (LWJGLException e) {
-			LWJGLUtil.log("Got exception while querying NetWM support: " + e);
-			return false;
-		} finally {
-			unlockAWT();
-		}
-	}
-	private static native boolean nIsNetWMFullscreenSupported(long display, int screen) throws LWJGLException;
 
 	/* Since Xlib is not guaranteed to be thread safe, we need a way to synchronize LWJGL
 	 * Xlib calls with AWT Xlib calls. Fortunately, JAWT implements Lock()/Unlock() to
@@ -355,7 +334,7 @@ final class LinuxDisplay implements DisplayImplementation {
 	static native int nUngrabPointer();
 
 	private static boolean isFullscreen() {
-		return current_window_mode == FULLSCREEN_LEGACY || current_window_mode == FULLSCREEN_NETWM;
+		return current_window_mode == FULLSCREEN_LEGACY;
 	}
 
 	private boolean shouldGrab() {
@@ -788,14 +767,6 @@ final class LinuxDisplay implements DisplayImplementation {
 			keyboard.releaseAll();
 		input_released = true;
 		updateInputGrab();
-		if (current_window_mode == FULLSCREEN_NETWM) {
-			nIconifyWindow(getDisplay(), getWindow(), getDefaultScreen());
-			try {
-				switchDisplayModeOnTmpDisplay(saved_mode);
-			} catch (LWJGLException e) {
-				LWJGLUtil.log("Failed to restore saved mode: " + e.getMessage());
-			}
-		}
 	}
 	private static native void nIconifyWindow(long display, long window, int screen);
 
@@ -804,13 +775,6 @@ final class LinuxDisplay implements DisplayImplementation {
 			return;
 		input_released = false;
 		updateInputGrab();
-		if (current_window_mode == FULLSCREEN_NETWM) {
-			try {
-				switchDisplayModeOnTmpDisplay(current_mode);
-			} catch (LWJGLException e) {
-				LWJGLUtil.log("Failed to restore mode: " + e.getMessage());
-			}
-		}
 	}
 
 	public void grabMouse(boolean new_grab) {
