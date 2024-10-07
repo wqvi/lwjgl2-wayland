@@ -100,11 +100,23 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nInternAtom(JNIEnv *e
 	return i;
 }
 
+// suppress -Wimplicit-function-declaration
+extern int setenv(const char *name, const char *value, int overwrite);
+
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_openDisplay(JNIEnv *env, jclass clazz) {
 	static int initialized = 0;
 	if (initialized) {
 		printfDebugJava(env, "SDL already initialized.");
 		return initialized;
+	}
+
+	const char *sdl_videodriver = getenv("SDL_VIDEODRIVER");
+
+	if (sdl_videodriver == NULL || strcmp(sdl_videodriver, "wayland") != 0) {
+		if (setenv("SDL_VIDEODRIVER", "wayland", 1) != 0) {
+			throwException(env, "Failed to set SDL video driver to wayland.");
+			return 0;
+		}
 	}
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0) {
