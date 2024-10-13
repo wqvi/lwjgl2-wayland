@@ -33,6 +33,6 @@ Compilation
 
 LWJGL requires a JDK and Ant installed to compile, as well as your platforms native compiler, such as GCC, to compile the JNI. Additionally you will need to install the SDL2 package and GLEW package.
 
-* ant generate-all
-* ant compile
-* ant compile_native
+```
+user@host ~/lwjgl2-wayland $ ant
+```
