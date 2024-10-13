@@ -156,7 +156,7 @@ final class LinuxMouse {
 
 	private void doHandlePointerMotion(boolean grab, boolean warp_pointer, long root_window, int root_x, int root_y, int win_x, int win_y, long nanos) {
 		setCursorPos(grab, win_x, win_y, nanos);
-		if (!warp_pointer)
+		/*if (!warp_pointer)
 			return;
 		int root_window_height = nGetWindowHeight(display, root_window);
 		int root_window_width = nGetWindowWidth(display, root_window);
@@ -181,7 +181,7 @@ final class LinuxMouse {
 			int center_x = (border_right - border_left)/2;
 			int center_y = (border_bottom - border_top)/2;
 			doWarpPointer(center_x, center_y);
-		}
+		}*/
 	}
 
 	public void changeGrabbed(boolean grab, boolean warp_pointer) {
