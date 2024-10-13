@@ -8,15 +8,13 @@ If you use MultiMC or PrismLauncher you can specify java command line arguments.
 `
 
 ## Incompatible Minecraft versions
-I've tested these versions of Minecraft to see which ones are incompatible with my LWJGL2 patch.
+I've tested these versions of Minecraft to see which ones are incompatible with my LWJGL2 patch. However if you play with a mod that removes the Minecraft applet or if you manage to get [Wakefield](https://github.com/openjdk/wakefield) to work for Java 8 these versions will work. Some examples of these versions working are [Better than Wolves](https://github.com/BTW-Community) for Minecraft 1.5.2 and [Better than Adventure](https://www.betterthanadventure.net/).
 - 1.0
 - 1.1
 - 1.2.5
 - 1.3.2
 - 1.4.7
 - 1.5.1
-
-I am under the assumption that all other versions of Minecraft work with my LWJGL2 patch. I have been working on a hack for openjdk-8.422_p05 to fix the incompatibilities. The errors that those versions throw are all from Java AWT. So my thinking was to patch openjdk-8.422_p05.
 
 LWJGL - Lightweight Java Game Library
 ======
@@ -33,7 +31,7 @@ Bugs/Suggestions: [https://github.com/LWJGL/lwjgl/issues](https://github.com/LWJ
 Compilation
 -----------
 
-LWJGL requires a JDK and Ant installed to compile, as well as your platforms native compiler to compile the JNI.
+LWJGL requires a JDK and Ant installed to compile, as well as your platforms native compiler, such as GCC, to compile the JNI. Additionally you will need to install the SDL2 package and GLEW package.
 
 * ant generate-all
 * ant compile
