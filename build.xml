@@ -30,7 +30,6 @@
 		<mkdir dir="${lwjgl.temp}/doc"              taskname="initialiazing temp/doc folder" />
 		<mkdir dir="${lwjgl.temp}/res"              taskname="initialiazing temp/res folder" />
 		<mkdir dir="${lwjgl.temp}/native"           taskname="initialiazing temp/native folder" />
-		<mkdir dir="${lwjgl.temp}/native/windows"   taskname="initialiazing temp/windows folder" />
 		<mkdir dir="${lwjgl.temp}/native/linux"     taskname="initialiazing temp/linux folder" />
 		<mkdir dir="${lwjgl.temp}/native/freebsd"   taskname="initialiazing temp/freebsd folder" />
 		<mkdir dir="${lwjgl.temp}/native/openbsd"   taskname="initialiazing temp/openbsd folder" />
@@ -58,7 +57,7 @@
 	<!-- Creates a distribution of LWJGL -->
 	<target name="release" description="Creates a distribution of LWJGL using supplied native binaries">
 		<!-- Warn user -->
-        <echo message="Before running the release target, please manually compile all platforms and place required files in ${lwjgl.lib}/windows, ${lwjgl.lib}/linux, ${lwjgl.lib}/freebsd and ${lwjgl.lib}/macosx${line.separator}Missing files will result in a successfull built, but with incomplete release zips"/>
+        <echo message="Before running the release target, please manually compile all platforms and place required files in ${lwjgl.lib}/linux, ${lwjgl.lib}/freebsd and ${lwjgl.lib}/macosx${line.separator}Missing files will result in a successfull built, but with incomplete release zips"/>
         <input
             message="All data in the ${lwjgl.dist} folder will be deleted. Continue? "
             validargs="yes,no"
@@ -235,11 +234,6 @@
 		<copy todir="${lwjgl.temp}/jar">
 			<fileset dir="${lwjgl.lib}/" includes="*.jar"/>
 		</copy>
-		<copy todir="${lwjgl.temp}/native/windows">
-			<fileset dir="${lwjgl.lib}/windows">
-				<patternset refid="lwjgl-windows.fileset" />
-			</fileset>
-		</copy>
 		<copy todir="${lwjgl.temp}/native/linux">
 			<fileset dir="${lwjgl.lib}/linux">
 				<patternset refid="lwjgl-linux.fileset" />
@@ -312,25 +306,6 @@
 			<class name="org.lwjgl.opengl.LinuxCanvasImplementation"/>
 		</javah>
 
-		<javah classpath="${lwjgl.bin}" destdir="${lwjgl.src.native}/windows">
-			<class name="org.lwjgl.WindowsSysImplementation"/>
-			<class name="org.lwjgl.opengl.WindowsKeyboard" />
-			<class name="org.lwjgl.opengl.WindowsRegistry" />
-			<class name="org.lwjgl.opengl.WindowsDisplay"/>
-			<class name="org.lwjgl.opengl.WindowsDisplayPeerInfo"/>
-			<class name="org.lwjgl.opengl.WindowsAWTGLCanvasPeerInfo"/>
-		</javah>
-
-		<javah classpath="${lwjgl.bin}" destdir="${lwjgl.src.native}/windows/opengl">
-			<class name="org.lwjgl.opengl.WindowsPbufferPeerInfo"/>
-			<class name="org.lwjgl.opengl.WindowsPeerInfo"/>
-			<class name="org.lwjgl.opengl.WindowsContextImplementation"/>
-		</javah>
-
-		<javah classpath="${lwjgl.bin}" destdir="${lwjgl.src.native}/windows/opengles">
-			<class name="org.lwjgl.opengl.WindowsPeerInfo"/>
-		</javah>
-
 		<javah classpath="${lwjgl.bin}" destdir="${lwjgl.src.native}/macosx">
 			<class name="org.lwjgl.MacOSXSysImplementation" />
 			<class name="org.lwjgl.opengl.MacOSXCanvasPeerInfo" />
@@ -374,19 +349,11 @@
 	</target>
 
 	<target name="touch-version">
-		<touch file="${lwjgl.src.native}/windows/org_lwjgl_opengl_Display.c"/>
 		<touch file="${lwjgl.src.native}/linux/org_lwjgl_opengl_Display.c"/>
 		<touch file="${lwjgl.src.native}/macosx/org_lwjgl_opengl_Display.m"/>
 	</target>
 
 	<target name="version-mismatch">
-		<loadfile srcfile="${lwjgl.src}/java/org/lwjgl/WindowsSysImplementation.java" property="lwjgl.java.windows.version">
-			<filterchain>
-				<tokenfilter>
-	    		<containsstring contains="JNI_VERSION ="/>
-				</tokenfilter>
-			</filterchain>
-		</loadfile>
 		<loadfile srcfile="${lwjgl.src}/java/org/lwjgl/LinuxSysImplementation.java" property="lwjgl.java.linux.version">
 			<filterchain>
 				<tokenfilter>
@@ -398,13 +365,6 @@
 			<filterchain>
 				<tokenfilter>
 	    		<containsstring contains="JNI_VERSION ="/>
-				</tokenfilter>
-			</filterchain>
-		</loadfile>
-		<loadfile srcfile="${lwjgl.src.native}/windows/org_lwjgl_WindowsSysImplementation.h" property="lwjgl.native.windows.version">
-			<filterchain>
-				<tokenfilter>
-	    		<containsstring contains="#define org_lwjgl_WindowsSysImplementation_JNI_VERSION"/>
 				</tokenfilter>
 			</filterchain>
 		</loadfile>
@@ -423,8 +383,6 @@
 			</filterchain>
 		</loadfile>
 		<echo>
-			lwjgl.java.windows.version = ${lwjgl.java.windows.version}
-			lwjgl.native.windows.version = ${lwjgl.native.windows.version}
 			lwjgl.java.linux.version = ${lwjgl.java.linux.version}
 			lwjgl.native.linux.version = ${lwjgl.native.linux.version}
 			lwjgl.java.freebsd.version = ${lwjgl.java.linux.version}
@@ -480,11 +438,6 @@
 	</target>
 
 	<target name="compile_native" depends="-initialize, headers, touch-version, version-mismatch" description="Compiles the native files">
-		<condition property="lwjgl.platform.windows">
-			<os family="windows" />
-		</condition>
-		<antcall target="-compile_native_win32" />
-
 		<condition property="lwjgl.platform.linux">
 			<os name="Linux" />
 		</condition>
@@ -509,15 +462,6 @@
 			<os name="Mac OS X" />
 		</condition>
 		<antcall target="-compile_native_macosx" />
-	</target>
-
-	<!-- Compiles LWJGL on Win32 platforms  -->
-	<target name="-compile_native_win32" if="lwjgl.platform.windows">
-		<ant antfile="platform_build/windows_ant/build.xml" inheritAll="false"/>
-		<copy todir="${lwjgl.lib}/windows">
-			<fileset dir="${lwjgl.bin}/lwjgl" includes="lwjgl*.dll"/>
-		</copy>
-		<version-check platform="windows"/>
 	</target>
 
 	<!-- Compiles LWJGL on Linux platforms -->
@@ -564,23 +508,11 @@
 	</target>
 
 	<target name="compile_native_es" depends="-initialize, headers, touch-version, version-mismatch" description="Compiles the native files">
-		<condition property="lwjgl.platform.windows">
-			<os family="windows"/>
-		</condition>
-		<antcall target="-compile_native_win32_es"/>
 
 		<condition property="lwjgl.platform.linux">
 			<os name="Linux"/>
 		</condition>
 		<antcall target="-compile_native_linux_es"/>
-	</target>
-
-	<!-- Compiles LWJGL ES on Win32 platforms  -->
-	<target name="-compile_native_win32_es" if="lwjgl.platform.windows">
-		<ant antfile="platform_build/windows_ant/build_es.xml" inheritAll="false"/>
-		<copy todir="${lwjgl.lib}/windows">
-			<fileset dir="${lwjgl.bin}/lwjgles" includes="lwjgl*.dll"/>
-		</copy>
 	</target>
 
 	<!-- Compiles LWJGL ES on Linux platforms -->
@@ -647,9 +579,6 @@
 
 	<target name="runtest" depends="all">
 		<fail message="test.mainclass is not set. Use 'ant -Dtest.mainclass=&lt;main-class&gt; runtest'" unless="test.mainclass"/>
-		<condition property="native_path" value="libs/windows">
-			<os family="windows" />
-		</condition>
 
 		<condition property="native_path" value="libs/linux">
 			<or>
