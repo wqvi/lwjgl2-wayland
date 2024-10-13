@@ -154,21 +154,6 @@ final class LinuxEvent {
 	}
 	private static native int nGetButtonButton(ByteBuffer event_buffer);
 
-	public long getButtonRoot() {
-		return nGetButtonRoot(event_buffer);
-	}
-	private static native long nGetButtonRoot(ByteBuffer event_buffer);
-
-	public int getButtonXRoot() {
-		return nGetButtonXRoot(event_buffer);
-	}
-	private static native int nGetButtonXRoot(ByteBuffer event_buffer);
-
-	public int getButtonYRoot() {
-		return nGetButtonYRoot(event_buffer);
-	}
-	private static native int nGetButtonYRoot(ByteBuffer event_buffer);
-
 	public int getButtonX() {
 		return nGetButtonX(event_buffer);
 	}

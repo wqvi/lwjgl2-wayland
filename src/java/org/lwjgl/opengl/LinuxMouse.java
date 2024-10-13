@@ -102,7 +102,7 @@ final class LinuxMouse {
 		// Pretend that the cursor never moved
 		last_x = win_x;
 		last_y = transformY(win_y);
-		doHandlePointerMotion(grab, warp_pointer, root_window, root_x, root_y, win_x, win_y, last_event_nanos);
+		doHandlePointerMotion(grab, warp_pointer, win_x, win_y, last_event_nanos);
 	}
 
 	public void read(ByteBuffer buffer) {
@@ -154,7 +154,7 @@ final class LinuxMouse {
 	}
 	private static native void nSendWarpEvent(long display, long window, long warp_atom, int center_x, int center_y);
 
-	private void doHandlePointerMotion(boolean grab, boolean warp_pointer, long root_window, int root_x, int root_y, int win_x, int win_y, long nanos) {
+	private void doHandlePointerMotion(boolean grab, boolean warp_pointer, int win_x, int win_y, long nanos) {
 		setCursorPos(grab, win_x, win_y, nanos);
 		/*if (!warp_pointer)
 			return;
@@ -207,8 +207,8 @@ final class LinuxMouse {
 	}
 	private static native void nWarpCursor(long display, long window, int x, int y);
 
-	private void handlePointerMotion(boolean grab, boolean warp_pointer, long millis, long root_window, int x_root, int y_root, int x, int y) {
-		doHandlePointerMotion(grab, warp_pointer, root_window, x_root, y_root, x, y, millis*1000000);
+	private void handlePointerMotion(boolean grab, boolean warp_pointer, long millis, int x, int y) {
+		doHandlePointerMotion(grab, warp_pointer, x, y, millis*1000000);
 	}
 
 	private void handleButton(boolean grab, int button, byte state, long nanos) {
@@ -308,7 +308,7 @@ final class LinuxMouse {
 				handleButtonEvent(grab, event.getButtonTime(), event.getButtonType(), (byte)event.getButtonButton());
 				return true;
 			case LinuxEvent.MotionNotify:
-				handlePointerMotion(grab, warp_pointer, event.getButtonTime(), event.getButtonRoot(), event.getButtonXRoot(), event.getButtonYRoot(), event.getButtonX(), event.getButtonY());
+				handlePointerMotion(grab, warp_pointer, event.getButtonTime(), event.getButtonX(), event.getButtonY());
 				return true;
 			default:
 				break;
