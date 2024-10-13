@@ -33,7 +33,6 @@
 		<mkdir dir="${lwjgl.temp}/native/linux"     taskname="initialiazing temp/linux folder" />
 		<mkdir dir="${lwjgl.temp}/native/freebsd"   taskname="initialiazing temp/freebsd folder" />
 		<mkdir dir="${lwjgl.temp}/native/openbsd"   taskname="initialiazing temp/openbsd folder" />
-		<mkdir dir="${lwjgl.temp}/native/macosx"    taskname="initialiazing temp/macosx folder" />
 		<mkdir dir="${lwjgl.temp}/native/solaris"   taskname="initialiazing temp/solaris folder" />
 	</target>
 
@@ -57,7 +56,7 @@
 	<!-- Creates a distribution of LWJGL -->
 	<target name="release" description="Creates a distribution of LWJGL using supplied native binaries">
 		<!-- Warn user -->
-        <echo message="Before running the release target, please manually compile all platforms and place required files in ${lwjgl.lib}/linux, ${lwjgl.lib}/freebsd and ${lwjgl.lib}/macosx${line.separator}Missing files will result in a successfull built, but with incomplete release zips"/>
+        <echo message="Before running the release target, please manually compile all platforms and place required files in ${lwjgl.lib}/linux and ${lwjgl.lib}/freebsd ${line.separator}Missing files will result in a successfull built, but with incomplete release zips"/>
         <input
             message="All data in the ${lwjgl.dist} folder will be deleted. Continue? "
             validargs="yes,no"
@@ -249,11 +248,6 @@
 				<patternset refid="lwjgl-openbsd.fileset" />
 			</fileset>
 		</copy>
-		<copy todir="${lwjgl.temp}/native/macosx">
-			<fileset dir="${lwjgl.lib}/macosx">
-				<patternset refid="lwjgl-macosx.fileset" />
-			</fileset>
-		</copy>
 		<copy todir="${lwjgl.temp}/native/solaris">
 			<fileset dir="${lwjgl.lib}/solaris">
 				<patternset refid="lwjgl-solaris.fileset" />
@@ -306,18 +300,6 @@
 			<class name="org.lwjgl.opengl.LinuxCanvasImplementation"/>
 		</javah>
 
-		<javah classpath="${lwjgl.bin}" destdir="${lwjgl.src.native}/macosx">
-			<class name="org.lwjgl.MacOSXSysImplementation" />
-			<class name="org.lwjgl.opengl.MacOSXCanvasPeerInfo" />
-			<class name="org.lwjgl.opengl.MacOSXPeerInfo" />
-			<class name="org.lwjgl.opengl.MacOSXPbufferPeerInfo" />
-			<class name="org.lwjgl.opengl.MacOSXDisplay" />
-			<class name="org.lwjgl.opengl.MacOSXContextImplementation" />
-			<class name="org.lwjgl.opengl.MacOSXNativeKeyboard" />
-			<class name="org.lwjgl.opengl.MacOSXNativeMouse" />
-			<class name="org.lwjgl.opengl.MacOSXMouseEventQueue" />
-		</javah>
-
 		<javah classpath="${lwjgl.bin}" destdir="${lwjgl.src.headers}">
 			<class name="org.lwjgl.opengl.AWTSurfaceLock" />
 			<class name="org.lwjgl.DefaultSysImplementation" />
@@ -350,18 +332,10 @@
 
 	<target name="touch-version">
 		<touch file="${lwjgl.src.native}/linux/org_lwjgl_opengl_Display.c"/>
-		<touch file="${lwjgl.src.native}/macosx/org_lwjgl_opengl_Display.m"/>
 	</target>
 
 	<target name="version-mismatch">
 		<loadfile srcfile="${lwjgl.src}/java/org/lwjgl/LinuxSysImplementation.java" property="lwjgl.java.linux.version">
-			<filterchain>
-				<tokenfilter>
-	    		<containsstring contains="JNI_VERSION ="/>
-				</tokenfilter>
-			</filterchain>
-		</loadfile>
-		<loadfile srcfile="${lwjgl.src}/java/org/lwjgl/MacOSXSysImplementation.java" property="lwjgl.java.macosx.version">
 			<filterchain>
 				<tokenfilter>
 	    		<containsstring contains="JNI_VERSION ="/>
@@ -375,13 +349,6 @@
 				</tokenfilter>
 			</filterchain>
 		</loadfile>
-		<loadfile srcfile="${lwjgl.src.native}/macosx/org_lwjgl_MacOSXSysImplementation.h" property="lwjgl.native.macosx.version">
-			<filterchain>
-				<tokenfilter>
-	    		<containsstring contains="#define org_lwjgl_MacOSXSysImplementation_JNI_VERSION"/>
-				</tokenfilter>
-			</filterchain>
-		</loadfile>
 		<echo>
 			lwjgl.java.linux.version = ${lwjgl.java.linux.version}
 			lwjgl.native.linux.version = ${lwjgl.native.linux.version}
@@ -389,8 +356,6 @@
 			lwjgl.native.freebsd.version = ${lwjgl.native.linux.version}
 			lwjgl.java.openbsd.version = ${lwjgl.java.linux.version}
 			lwjgl.native.openbsd.version = ${lwjgl.native.linux.version}
-			lwjgl.java.macosx.version = ${lwjgl.java.macosx.version}
-			lwjgl.native.macosx.version = ${lwjgl.native.macosx.version}
 		</echo>
 	</target>
 
@@ -457,11 +422,6 @@
 			<os name="SunOS" />
 		</condition>
 		<antcall target="-compile_native_solaris" />
-
-		<condition property="lwjgl.platform.macosx">
-			<os name="Mac OS X" />
-		</condition>
-		<antcall target="-compile_native_macosx" />
 	</target>
 
 	<!-- Compiles LWJGL on Linux platforms -->
@@ -500,12 +460,6 @@
 		<version-check platform="solaris"/>
 	</target>
 
-	<!-- Compiles LWJGL on Mac platforms -->
-	<target name="-compile_native_macosx" if="lwjgl.platform.macosx">
-		<ant antfile="platform_build/macosx_ant/build.xml" inheritAll="false"/>
-		<copy file="${lwjgl.bin}/lwjgl/liblwjgl.dylib" todir="${lwjgl.lib}/macosx"/>
-		<version-check platform="macosx"/>
-	</target>
 
 	<target name="compile_native_es" depends="-initialize, headers, touch-version, version-mismatch" description="Compiles the native files">
 
@@ -587,9 +541,6 @@
 			</or>
 		</condition>
 
-		<condition property="native_path" value="libs/macosx">
-			<os name="Mac OS X" />
-		</condition>
 		<property name="native_path_expanded" location="${native_path}"/>
 		<java classname="${test.mainclass}" classpath="res:${lwjgl.lib}/lwjgl.jar:${lwjgl.lib}/lwjgl_util.jar:${lwjgl.lib}/lwjgl_test.jar:${lwjgl.lib}/jinput.jar" fork="true">
 			<sysproperty key="org.lwjgl.util.Debug" value="true"/>
