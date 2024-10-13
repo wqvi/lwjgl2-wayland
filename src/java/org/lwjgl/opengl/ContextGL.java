@@ -83,16 +83,7 @@ final class ContextGL implements Context {
 	}
 
 	private static ContextImplementation createImplementation() {
-		switch ( LWJGLUtil.getPlatform() ) {
-			case LWJGLUtil.PLATFORM_LINUX:
-				return new LinuxContextImplementation();
-			case LWJGLUtil.PLATFORM_WINDOWS:
-				return new WindowsContextImplementation();
-			case LWJGLUtil.PLATFORM_MACOSX:
-				return new MacOSXContextImplementation();
-			default:
-				throw new IllegalStateException("Unsupported platform");
-		}
+		return new LinuxContextImplementation();
 	}
 
 	PeerInfo getPeerInfo() {
@@ -269,28 +260,9 @@ final class ContextGL implements Context {
 	public synchronized void setCLSharingProperties(final PointerBuffer properties) throws LWJGLException {
 		final ByteBuffer peer_handle = peer_info.lockAndGetHandle();
 		try {
-			switch ( LWJGLUtil.getPlatform() ) {
-				case LWJGLUtil.PLATFORM_WINDOWS:
-					final WindowsContextImplementation implWindows = (WindowsContextImplementation)implementation;
-					properties.put(KHRGLSharing.CL_GL_CONTEXT_KHR).put(implWindows.getHGLRC(handle));
-					properties.put(KHRGLSharing.CL_WGL_HDC_KHR).put(implWindows.getHDC(peer_handle));
-					break;
-				case LWJGLUtil.PLATFORM_LINUX:
-					final LinuxContextImplementation implLinux = (LinuxContextImplementation)implementation;
-					properties.put(KHRGLSharing.CL_GL_CONTEXT_KHR).put(implLinux.getGLXContext(handle));
-					properties.put(KHRGLSharing.CL_GLX_DISPLAY_KHR).put(implLinux.getDisplay(peer_handle));
-					break;
-				case LWJGLUtil.PLATFORM_MACOSX:
-					if (LWJGLUtil.isMacOSXEqualsOrBetterThan(10, 6)) { // only supported on OS X 10.6+
-						// http://oscarbg.blogspot.com/2009/10/about-opencl-opengl-interop.html
-						final MacOSXContextImplementation implMacOSX = (MacOSXContextImplementation)implementation;
-						final long CGLShareGroup = implMacOSX.getCGLShareGroup(handle);
-						properties.put(APPLEGLSharing.CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE).put(CGLShareGroup);
-						break;
-					}
-				default:
-					throw new UnsupportedOperationException("CL/GL context sharing is not supported on this platform.");
-			}
+			final LinuxContextImplementation implLinux = (LinuxContextImplementation)implementation;
+			properties.put(KHRGLSharing.CL_GL_CONTEXT_KHR).put(implLinux.getGLXContext(handle));
+			properties.put(KHRGLSharing.CL_GLX_DISPLAY_KHR).put(implLinux.getDisplay(peer_handle));
 		} finally {
 			peer_info.unlock();
 		}

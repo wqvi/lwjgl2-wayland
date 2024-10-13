@@ -89,16 +89,7 @@ public class AWTGLCanvas extends Canvas implements DrawableLWJGL, ComponentListe
 	}
 
 	static AWTCanvasImplementation createImplementation() {
-		switch ( LWJGLUtil.getPlatform() ) {
-			case LWJGLUtil.PLATFORM_LINUX:
-				return new LinuxCanvasImplementation();
-			case LWJGLUtil.PLATFORM_WINDOWS:
-				return new WindowsCanvasImplementation();
-			case LWJGLUtil.PLATFORM_MACOSX:
-				return new MacOSXCanvasImplementation();
-			default:
-				throw new IllegalStateException("Unsupported platform");
-		}
+		return new LinuxCanvasImplementation();
 	}
 
 	private void setUpdate() {

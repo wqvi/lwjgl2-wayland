@@ -126,16 +126,7 @@ public final class Sys {
 	}
 
 	private static SysImplementation createImplementation() {
-		switch (LWJGLUtil.getPlatform()) {
-			case LWJGLUtil.PLATFORM_LINUX:
-				return new LinuxSysImplementation();
-			case LWJGLUtil.PLATFORM_WINDOWS:
-				return new WindowsSysImplementation();
-			case LWJGLUtil.PLATFORM_MACOSX:
-				return new MacOSXSysImplementation();
-			default:
-				throw new IllegalStateException("Unsupported platform");
-		}
+		return new LinuxSysImplementation();
 	}
 
 	/**
