@@ -234,8 +234,14 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 	SDL_GL_SetSwapInterval(1);
 
 	glewExperimental = GL_FALSE;
-	if (glewInit() != GLEW_OK) {
-		throwException(env, "Failed to initialize glew");
+	int err_code = glewInit();
+	switch (err_code) {
+		case GLEW_ERROR_NO_GL_VERSION:
+			throwException(env, "Failed to initialize glew. GLEW_ERROR_NO_GL_VERSION");
+		case GLEW_ERROR_GL_VERSION_10_ONLY:
+			throwException(env, "Failed to initialize glew. GLEW_ERROR_GL_VERSION_10_ONLY");
+	}
+	if (err_code != GLEW_OK) {
 		SDL_GL_DeleteContext(context);
 		SDL_DestroyWindow(context_window);
 		SDL_Quit();
