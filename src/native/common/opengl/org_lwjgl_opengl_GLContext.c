@@ -36,7 +36,11 @@
 #include "extgl.h"
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_GLContext_ngetFunctionAddress(JNIEnv *env, jclass clazz, jlong function_name) {
-	return (jlong)(intptr_t)extgl_GetProcAddress((char *)(intptr_t)function_name);
+	char *str = (char *)(intptr_t)function_name;
+	void *ptr = extgl_GetProcAddress(str);
+	printf("%p = nGetFunctionAddress(%s)\n", ptr, str);
+	fflush(stdout);
+	return (jlong)(intptr_t)ptr;
 }
 
 JNIEXPORT void JNICALL Java_org_lwjgl_opengl_GLContext_nLoadOpenGLLibrary(JNIEnv * env, jclass clazz) {
