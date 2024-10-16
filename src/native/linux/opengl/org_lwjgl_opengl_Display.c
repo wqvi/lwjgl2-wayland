@@ -120,7 +120,7 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_openDisplay(JNIEnv *e
 	}
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0) {
-		throwException(env, "Failed to initialize SDL");
+		throwFormattedException(env, "Failed to initialize SDL: %s", SDL_GetError());
 		return initialized;
 	}
 
@@ -212,7 +212,7 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 			flags);
 
 	if (!context_window) {
-		throwException(env, "Failed to create SDL window");
+		throwFormattedException(env, "Failed to create SDL window: %s", SDL_GetError());
 		SDL_Quit();
 		return 0;
 	}
@@ -223,7 +223,7 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, SDL_TRUE);
 	context = SDL_GL_CreateContext(context_window);
 	if (context == NULL) {
-		throwException(env, "Failed to create SDL GL context");
+		throwFormattedException(env, "Failed to create SDL GL context: %s", SDL_GetError());
 		SDL_DestroyWindow(context_window);
 		SDL_Quit();
 		return 0;
@@ -235,13 +235,8 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 
 	glewExperimental = GL_FALSE;
 	int err_code = glewInit();
-	switch (err_code) {
-		case GLEW_ERROR_NO_GL_VERSION:
-			throwException(env, "Failed to initialize glew. GLEW_ERROR_NO_GL_VERSION");
-		case GLEW_ERROR_GL_VERSION_10_ONLY:
-			throwException(env, "Failed to initialize glew. GLEW_ERROR_GL_VERSION_10_ONLY");
-	}
 	if (err_code != GLEW_OK) {
+		throwFormattedException(env, "Failed to initialize glew: %s", glewGetErrorString(err_code));
 		SDL_GL_DeleteContext(context);
 		SDL_DestroyWindow(context_window);
 		SDL_Quit();
