@@ -5,7 +5,9 @@ I used the SDL2 library in place of the X11 library for windowing, mouse, and ke
 If you use MultiMC or PrismLauncher you can specify java command line arguments. LWJGL has a way to set the native library loaded. Query it through the -D flag and org.lwjgl.librarypath. Assign org.lwjgl.librarypath to where ever the native library resides. An example:
 `
 -Dorg.lwjgl.librarypath=~/lwjgl2-wayland/libs/linux
-`
+`.
+Run the python script. First parameter is the Minecraft instance directory. The second parameter is the repository location (probably will be removed soon). An example: 
+`./lwjgl.py ~/.local/share/PrismLauncher/instances/1.8.9/ ~/lwjgl2-wayland/`
 
 ## Incompatible Minecraft versions
 I've tested these versions of Minecraft to see which ones are incompatible with my LWJGL2 patch. However if you play with a mod that removes the Minecraft applet or if you manage to get [Wakefield](https://github.com/openjdk/wakefield) to work for Java 8 these versions will work. Some examples of these versions working are [Better than Wolves](https://github.com/BTW-Community) for Minecraft 1.5.2 and [Better than Adventure](https://www.betterthanadventure.net/).
@@ -31,7 +33,7 @@ Bugs/Suggestions: [https://github.com/LWJGL/lwjgl/issues](https://github.com/LWJ
 Compilation
 -----------
 
-LWJGL requires a JDK and Ant installed to compile, as well as your platforms native compiler, such as GCC, to compile the JNI. Additionally you will need to install the SDL2 package and GLEW package.
+LWJGL requires JDK-8 and Ant installed to compile, as well as your platforms native compiler, such as GCC, to compile the JNI. Additionally you will need to install the SDL2 and libepoxy packages.
 
 ```
 user@host ~/lwjgl2-wayland $ ant
