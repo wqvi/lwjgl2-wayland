@@ -39,7 +39,8 @@
  * @version $Revision$
  */
 
-#include <GL/glew.h>
+#include <epoxy/gl.h>
+#include <epoxy/egl.h>
 #define NO_SDL_GLEXT
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
@@ -233,15 +234,6 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxDisplay_nCreateWindow(JNIEnv 
 
 	SDL_GL_SetSwapInterval(1);
 
-	glewExperimental = GL_FALSE;
-	int err_code = glewInit();
-	if (err_code != GLEW_OK) {
-		throwFormattedException(env, "Failed to initialize glew: %s", glewGetErrorString(err_code));
-		SDL_GL_DeleteContext(context);
-		SDL_DestroyWindow(context_window);
-		SDL_Quit();
-		return 0;
-	}
 	is_running = 1;
 	window_singleton_flag = 1;
 	return (intptr_t)context_window;
