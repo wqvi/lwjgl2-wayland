@@ -21,5 +21,7 @@ jobs:
       with:
         java-version: '8'
         distribution: 'temurin'
+    - name: Requirments
+      run: apt install libepoxy libsdl2-dev libsdl2-2.0-0 libx11-dev -y
     - name: Build with Ant
       run: ant -noinput -buildfile build.xml
