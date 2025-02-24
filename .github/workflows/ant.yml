@@ -25,3 +25,7 @@ jobs:
       run: sudo apt install libepoxy-dev libepoxy0 libsdl2-dev libsdl2-2.0-0 libx11-dev freeglut3-dev mesa-utils -y
     - name: Build with Ant
       run: ant -noinput -buildfile build.xml
+    - uses: actions/upload-artifact@v4
+      with:
+        name: wd
+        path: ./
