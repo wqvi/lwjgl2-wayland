@@ -38,3 +38,10 @@ LWJGL requires JDK-8 and Ant installed to compile, as well as your platforms nat
 ```
 user@host ~/lwjgl2-wayland $ ant
 ```
+
+## Hyprland freezing workaround
+If you're using Hyprland and exerience freezing when opening the inventory, chat, or pause menu while in game, it's likely due to key repeat events under Wayland.
+
+As a workaround, you can disable key repeats for the game process by querying for the active window, then setting `repeat_rate=0` as long as Minecraft is that active window. `mc-repeat-toggle.sh` is a script that does all of this for you! You may need to tweak the script depending on what version of Minecraft you are using, but don't worry, it is very self-explanatory.
+
+Make the script executable and run it however you want (manual, systemd service, exec-once, etc.). You should no longer experience freezes. This is a temporary workaround, and will be fixed in a future version.
