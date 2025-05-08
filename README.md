@@ -39,7 +39,7 @@ Some mods remove the Java applet which allows the game to run natively again.
 - [Better than Adventure](https://www.betterthanadventure.net/) for Minecraft Beta 1.7.3
 
 ## Hyprland freezing workaround
-If you're using Hyprland and exerience freezing when opening the inventory, chat, or pause menu while in game, it's likely due to key repeat events under Wayland.
+If you're using Hyprland and experience freezing when opening the inventory, chat, or pause menu while in game, it's likely due to key repeat events under Wayland.
 
 As a workaround, you can disable key repeats for the game process by querying for the active window, then setting `repeat_rate=0` as long as Minecraft is that active window. `mc-repeat-toggle.sh` is a script that does all of this for you! You may need to tweak the script depending on what version of Minecraft you are using, but don't worry, it is very self-explanatory.
 
