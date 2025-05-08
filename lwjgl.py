@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import configparser
+from configparser import ConfigParser
 import json
 from pathlib import Path
 import sys
@@ -30,6 +30,20 @@ def patch_library(path):
             json.dump(data, file, indent=4)
     else:
         print('Patch already applied to org.lwjgl.json')
+
+
+def patch_cfg(cfg_path, git_dir):
+    data = ConfigParser()
+    data.read(cfg_path)
+    args = data.get('General', 'JvmArgs')
+    args = args.strip('\"')
+    if f'-Dorg.lwjgl.librarypath={git_dir}/libs/linux' not in args:
+        args += f' -Dorg.lwjgl.librarypath={git_dir}/libs/linux'
+
+
+    data.set('General', 'JvmArgs', '\"' + args + '\"')
+    with open(cfg_path, 'w') as file:
+        data.write(file)
 
 
 if __name__ == '__main__':
@@ -79,3 +93,4 @@ if __name__ == '__main__':
 
     create_library_symlink(inst_symlink_jar, git_jar)
     patch_library(org_lwjgl_json)
+    patch_cfg((inst_dir / 'instance.cfg').resolve(), git_dir.resolve())
