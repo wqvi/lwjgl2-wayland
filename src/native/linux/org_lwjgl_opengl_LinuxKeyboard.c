@@ -39,12 +39,6 @@
  * @version $Revision: 2399 $
  */
 
-#include <X11/X.h>
-#include <X11/Xlib.h>
-#include <X11/XKBlib.h>
-#include <X11/Xutil.h>
-#include <X11/keysym.h>
-#include "common_tools.h"
 #include "org_lwjgl_opengl_LinuxKeyboard.h"
 #define NO_SDL_GLEXT
 #include <SDL2/SDL.h>

@@ -54,9 +54,6 @@ final class LinuxKeyboard {
 
 	private static final int KEYBOARD_BUFFER_SIZE = 50;
 
-	private final long xim;
-	private final long xic;
-
 	private final int numlock_mask;
 	private final int modeswitch_mask;
 	private final int caps_lock_mask;
@@ -88,17 +85,12 @@ final class LinuxKeyboard {
 		modeswitch_mask = tmp_modeswitch_mask;
 		caps_lock_mask = tmp_caps_lock_mask;
 		shift_lock_mask = tmp_shift_lock_mask;
-		xim = 0;
-    xic = 0;
 	}
 	private static native long getModifierMapping(long display);
 	private static native void freeModifierMapping(long modifier_map);
 	private static native int getMaxKeyPerMod(long modifier_map);
 	private static native int lookupModifierMap(long modifier_map, int index);
 	private static native long keycodeToKeySym(long display, int key_code);
-
-	private static native void setupIMEventMask(long display, long window, long xic);
-	private static native ByteBuffer allocateComposeStatus();
 
 	public void destroy(long display) {
     System.out.println("Destroyed Linux Keyboard! lwjgl2-wayland/input-fix");
