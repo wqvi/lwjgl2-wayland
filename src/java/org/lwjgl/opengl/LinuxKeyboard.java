@@ -62,8 +62,6 @@ final class LinuxKeyboard {
 	private final int caps_lock_mask;
 	private final int shift_lock_mask;
 
-	private final ByteBuffer compose_status;
-
 	private final byte[] key_down_buffer = new byte[Keyboard.KEYBOARD_SIZE];
 	private final EventQueue event_queue = new EventQueue(Keyboard.EVENT_SIZE);
 
@@ -81,61 +79,17 @@ final class LinuxKeyboard {
 	private byte deferred_key_state;
 
 	LinuxKeyboard(long display, long window) {
-		long modifier_map = getModifierMapping(display);
 		int tmp_numlock_mask = 0;
 		int tmp_modeswitch_mask = 0;
 		int tmp_caps_lock_mask = 0;
 		int tmp_shift_lock_mask = 0;
-		if (modifier_map != 0) {
-			int max_keypermod = getMaxKeyPerMod(modifier_map);
-			// Find modifier masks
-			int i, j;
-			for (i = 0; i < 8; i++) {
-				for (j = 0; j < max_keypermod; j++) {
-					int key_code = lookupModifierMap(modifier_map, i*max_keypermod + j);
-					int key_sym = (int)keycodeToKeySym(display, key_code);
-					int mask = 1 << i;
-					switch (key_sym) {
-						case LinuxKeycodes.XK_Num_Lock:
-							tmp_numlock_mask |= mask;
-							break;
-						case LinuxKeycodes.XK_Mode_switch:
-							tmp_modeswitch_mask |= mask;
-							break;
-						case LinuxKeycodes.XK_Caps_Lock:
-							if (i == LockMapIndex) {
-								tmp_caps_lock_mask = mask;
-								tmp_shift_lock_mask = 0;
-							}
-							break;
-						case LinuxKeycodes.XK_Shift_Lock:
-							if (i == LockMapIndex && tmp_caps_lock_mask == 0)
-								tmp_shift_lock_mask = mask;
-							break;
-						default:
-							break;
-					}
-				}
-			}
-			freeModifierMapping(modifier_map);
-		}
+		
 		numlock_mask = tmp_numlock_mask;
 		modeswitch_mask = tmp_modeswitch_mask;
 		caps_lock_mask = tmp_caps_lock_mask;
 		shift_lock_mask = tmp_shift_lock_mask;
-		setDetectableKeyRepeat(display, true);
-		xim = openIM(display);
-		if (xim != 0) {
-			xic = createIC(xim, window);
-			if (xic != 0) {
-				setupIMEventMask(display, window, xic);
-			} else {
-				destroy(display);
-			}
-		} else {
-			xic = 0;
-		}
-		compose_status = allocateComposeStatus();
+		xim = 0;
+    xic = 0;
 	}
 	private static native long getModifierMapping(long display);
 	private static native void freeModifierMapping(long modifier_map);
@@ -143,27 +97,15 @@ final class LinuxKeyboard {
 	private static native int lookupModifierMap(long modifier_map, int index);
 	private static native long keycodeToKeySym(long display, int key_code);
 
-	private static native long openIM(long display);
-	private static native long createIC(long xim, long window);
 	private static native void setupIMEventMask(long display, long window, long xic);
 	private static native ByteBuffer allocateComposeStatus();
 
 	private static void setDetectableKeyRepeat(long display, boolean enabled) {
-		boolean success = nSetDetectableKeyRepeat(display, enabled);
-		if (!success)
-			LWJGLUtil.log("Failed to set detectable key repeat to " + enabled);
 	}
-	private static native boolean nSetDetectableKeyRepeat(long display, boolean enabled);
 
 	public void destroy(long display) {
-		if (xic != 0)
-			destroyIC(xic);
-		if (xim != 0)
-			closeIM(xim);
-		setDetectableKeyRepeat(display, false);
+    LWJGLUtil.log("Destroyed Linux Keyboard! lwjgl2-wayland/input-fix");
 	}
-	private static native void destroyIC(long xic);
-	private static native void closeIM(long xim);
 
 	public void read(ByteBuffer buffer) {
 		flushDeferredEvent();
@@ -187,13 +129,13 @@ final class LinuxKeyboard {
 	private int lookupStringISO88591(long event_ptr, int[] translation_buffer) {
 		int i;
 
-		int num_chars = lookupString(event_ptr, native_translation_buffer, compose_status);
+		int num_chars = lookupString(event_ptr, native_translation_buffer);
 		for (i = 0; i < num_chars; i++) {
 			translation_buffer[i] = ((int)native_translation_buffer.get(i)) & 0xff;
 		}
 		return num_chars;
 	}
-	private static native int lookupString(long event_ptr, ByteBuffer buffer, ByteBuffer compose_status);
+	private static native int lookupString(long event_ptr, ByteBuffer buffer);
 
 	private int lookupStringUnicode(long event_ptr, int[] translation_buffer) {
 		int status = utf8LookupString(xic, event_ptr, native_translation_buffer, native_translation_buffer.position(), native_translation_buffer.remaining());

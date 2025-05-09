@@ -93,14 +93,6 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_keycodeToKeySym(JNIE
 	return keysym.sym;
 }
 
-JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_openIM(JNIEnv *env, jclass unused, jlong display_ptr) {
-	/*Display *disp = (Display *)(intptr_t)display_ptr;
-	XSetLocaleModifiers ("@im=none");
-	XIM xim = XOpenIM(disp, NULL, NULL, NULL);
-	return (intptr_t)xim;*/
-	return 1;
-}
-
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_createIC(JNIEnv *env, jclass unused, jlong xim_ptr, jlong window_ptr) {
 	/*Window win = (Window)window_ptr;
 	XIM xim = (XIM)(intptr_t)xim_ptr;
@@ -200,7 +192,7 @@ static char handle_shift_modifier(SDL_Keycode sym) {
 	}
 }
 
-JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_lookupString(JNIEnv *env, jclass unused, jlong event_ptr, jobject buffer_obj, jobject compose_status_obj) {
+JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_lookupString(JNIEnv *env, jclass unused, jlong event_ptr, jobject buffer_obj) {
 	SDL_Event *event = (SDL_Event *)event_ptr;
 	char *buffer = (char *)(*env)->GetDirectBufferAddress(env, buffer_obj);
 
@@ -219,10 +211,6 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_lookupString(JNIEnv *
 	}
 
 	return 0;
-}
-
-JNIEXPORT jobject JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_allocateComposeStatus(JNIEnv *env, jclass unused) {
-	return newJavaManagedByteBuffer(env, sizeof(XComposeStatus));
 }
 
 JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_utf8LookupString(JNIEnv *env, jclass unused, jlong xic_ptr, jlong event_ptr, jobject buffer_obj, jint buffer_position, jint buffer_size) {
