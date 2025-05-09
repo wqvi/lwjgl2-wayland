@@ -137,28 +137,8 @@ final class LinuxKeyboard {
 	}
 	private static native int lookupString(long event_ptr, ByteBuffer buffer);
 
-	private int lookupStringUnicode(long event_ptr, int[] translation_buffer) {
-		int status = utf8LookupString(xic, event_ptr, native_translation_buffer, native_translation_buffer.position(), native_translation_buffer.remaining());
-		if (status != XLookupChars && status != XLookupBoth)
-			return 0;
-		native_translation_buffer.flip();
-		utf8_decoder.decode(native_translation_buffer, char_buffer, true);
-		native_translation_buffer.compact();
-		char_buffer.flip();
-		int i = 0;
-		while (char_buffer.hasRemaining() && i < translation_buffer.length) {
-			translation_buffer[i++] = char_buffer.get();
-		}
-		char_buffer.compact();
-		return i;
-	}
-	private static native int utf8LookupString(long xic, long event_ptr, ByteBuffer buffer, int pos, int size);
-
 	private int lookupString(long event_ptr, int[] translation_buffer) {
-		if (xic != 0) {
-			return lookupStringUnicode(event_ptr, translation_buffer);
-		} else
-			return lookupStringISO88591(event_ptr, translation_buffer);
+    return lookupStringISO88591(event_ptr, translation_buffer);
 	}
 
 	private void translateEvent(long event_ptr, int keycode, byte key_state, long nanos, boolean repeat) {

@@ -93,37 +93,6 @@ JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_keycodeToKeySym(JNIE
 	return keysym.sym;
 }
 
-JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_createIC(JNIEnv *env, jclass unused, jlong xim_ptr, jlong window_ptr) {
-	/*Window win = (Window)window_ptr;
-	XIM xim = (XIM)(intptr_t)xim_ptr;
-	XIC xic = XCreateIC(xim,  XNClientWindow, win, XNFocusWindow, win, XNInputStyle, XIMPreeditNothing | XIMStatusNothing, NULL);
-	return (intptr_t)xic;*/
-	return 0;
-}
-
-JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_setupIMEventMask(JNIEnv *env, jclass unused, jlong display_ptr, jlong window_ptr, jlong xic_ptr) {
-	/*Display *disp = (Display *)(intptr_t)display_ptr;
-	Window win = (Window)window_ptr;
-	XIC xic = (XIC)(intptr_t)xic_ptr;
-	long im_event_mask;
-	XWindowAttributes win_attributes;
-
-	XGetWindowAttributes(disp, win, &win_attributes);
-	XGetICValues(xic, XNFilterEvents, &im_event_mask, NULL);
-	XSelectInput(disp, win, win_attributes.your_event_mask | im_event_mask);
-	XSetICFocus(xic);*/
-}
-
-JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_destroyIC(JNIEnv *env, jclass unused, jlong xic_ptr) {
-	/*XIC xic = (XIC)(intptr_t)xic_ptr;
-	XDestroyIC(xic);*/
-}
-
-JNIEXPORT void JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_closeIM(JNIEnv *env, jclass unused, jlong xim_ptr) {
-	/*XIM xim = (XIM)(intptr_t)xim_ptr;
-	XCloseIM(xim);*/
-}
-
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_lookupKeysym(JNIEnv *env, jclass unused, jlong event_ptr, jint index) {
 	/*XKeyEvent *event = (XKeyEvent *)(intptr_t)event_ptr;
 	return XLookupKeysym(event, index);*/
@@ -211,8 +180,4 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_lookupString(JNIEnv *
 	}
 
 	return 0;
-}
-
-JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_utf8LookupString(JNIEnv *env, jclass unused, jlong xic_ptr, jlong event_ptr, jobject buffer_obj, jint buffer_position, jint buffer_size) {
-	return 0; // dunno why I didn't implement this one?
 }
