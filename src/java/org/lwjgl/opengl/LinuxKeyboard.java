@@ -126,19 +126,16 @@ final class LinuxKeyboard {
 		event_queue.putEvent(tmp_event);
 	}
 
-	private int lookupStringISO88591(long event_ptr, int[] translation_buffer) {
-		int i;
+	private static native int lookupString(long event_ptr, ByteBuffer buffer);
+
+	private int lookupString(long event_ptr, int[] translation_buffer) {
+    int i;
 
 		int num_chars = lookupString(event_ptr, native_translation_buffer);
 		for (i = 0; i < num_chars; i++) {
 			translation_buffer[i] = ((int)native_translation_buffer.get(i)) & 0xff;
 		}
 		return num_chars;
-	}
-	private static native int lookupString(long event_ptr, ByteBuffer buffer);
-
-	private int lookupString(long event_ptr, int[] translation_buffer) {
-    return lookupStringISO88591(event_ptr, translation_buffer);
 	}
 
 	private void translateEvent(long event_ptr, int keycode, byte key_state, long nanos, boolean repeat) {
