@@ -100,11 +100,8 @@ final class LinuxKeyboard {
 	private static native void setupIMEventMask(long display, long window, long xic);
 	private static native ByteBuffer allocateComposeStatus();
 
-	private static void setDetectableKeyRepeat(long display, boolean enabled) {
-	}
-
 	public void destroy(long display) {
-    LWJGLUtil.log("Destroyed Linux Keyboard! lwjgl2-wayland/input-fix");
+    System.out.println("Destroyed Linux Keyboard! lwjgl2-wayland/input-fix");
 	}
 
 	public void read(ByteBuffer buffer) {
