@@ -154,15 +154,16 @@ final class LinuxKeyboard {
 	}
 
 	private static long getKeySym(long event_ptr, int group, int index) {
-		long keysym = lookupKeysym(event_ptr, group*2 + index);
+    return lookupKeysym(event_ptr);
+		/*long keysym = lookupKeysym(event_ptr, group*2 + index);
 		if (isNoSymbolOrVendorSpecific(keysym) && index == 1) {
 			keysym = lookupKeysym(event_ptr, group*2 + 0);
 		}
 		if (isNoSymbolOrVendorSpecific(keysym) && group == 1)
 			keysym = getKeySym(event_ptr, 0, index);
-		return keysym;
+		return keysym;*/
 	}
-	private static native long lookupKeysym(long event_ptr, int index);
+	private static native long lookupKeysym(long event_ptr);
 	private static native long toUpper(long keysym);
 
 	private long mapEventToKeySym(long event_ptr, int event_state) {
@@ -198,7 +199,7 @@ final class LinuxKeyboard {
 		int keycode = LinuxKeycodes.mapKeySymToLWJGLKeyCode(keysym);
 		if (keycode == Keyboard.KEY_NONE) {
 			// Try unshifted keysym mapping
-			keysym = lookupKeysym(event_ptr, 0);
+			keysym = lookupKeysym(event_ptr);
 			keycode = LinuxKeycodes.mapKeySymToLWJGLKeyCode(keysym);
 		}
 		return keycode;
@@ -259,15 +260,20 @@ final class LinuxKeyboard {
 		}
 	}
 
+  /* Seems vaguely important */
 	public boolean filterEvent(LinuxEvent event) {
 		switch (event.getType()) {
 			case LinuxEvent.KeyPress: /* Fall through */
 			case LinuxEvent.KeyRelease:
+        System.out.println("filterEvent key event lwjgl2-wayland/input-fix");
+        // TODO
+        // Identify how to make this not... strange
 				handleKeyEvent(event.getKeyAddress(), event.getKeyTime(), event.getKeyType(), event.getKeyKeyCode(), event.getKeyState());
 				return true;
 			default:
 				break;
 		}
+    System.out.println("filterEvent other event lwjgl2-wayland/input-fix");
 		return false;
 	}
 }

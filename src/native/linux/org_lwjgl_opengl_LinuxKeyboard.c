@@ -57,8 +57,9 @@ JNIEXPORT jint JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_lookupModifierMap(JNI
 	return keysym.sym;
 }
 
-JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_lookupKeysym(JNIEnv *env, jclass unused, jlong event_ptr, jint index) {
-	return convert_keycode(keysym.sym);
+JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_lookupKeysym(JNIEnv *env, jclass unused, jlong event_ptr) {
+  SDL_Event *event = (SDL_Event *)event_ptr; // TODO actually utilize an event pointer within the java class
+	return convert_keycode(keysym.sym); // for now a global variable :)
 }
 
 JNIEXPORT jlong JNICALL Java_org_lwjgl_opengl_LinuxKeyboard_toUpper(JNIEnv *env, jclass unused, jlong keysym) {
