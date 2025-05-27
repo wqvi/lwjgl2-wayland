@@ -76,15 +76,10 @@ final class LinuxKeyboard {
 	private byte deferred_key_state;
 
 	LinuxKeyboard(long display, long window) {
-		int tmp_numlock_mask = 0;
-		int tmp_modeswitch_mask = 0;
-		int tmp_caps_lock_mask = 0;
-		int tmp_shift_lock_mask = 0;
-		
-		numlock_mask = tmp_numlock_mask;
-		modeswitch_mask = tmp_modeswitch_mask;
-		caps_lock_mask = tmp_caps_lock_mask;
-		shift_lock_mask = tmp_shift_lock_mask;
+		numlock_mask = 0;
+		modeswitch_mask = 0;
+		caps_lock_mask = 0;
+		shift_lock_mask = 0;
 	}
 	private static native long getModifierMapping(long display);
 	private static native void freeModifierMapping(long modifier_map);
@@ -149,19 +144,8 @@ final class LinuxKeyboard {
 			(0x11000000 <= keysym && keysym <= 0x1100FFFF);
 	}
 
-	private static boolean isNoSymbolOrVendorSpecific(long keysym) {
-		return keysym == NoSymbol || (keysym & (1 << 28)) != 0;
-	}
-
 	private static long getKeySym(long event_ptr, int group, int index) {
     return lookupKeysym(event_ptr);
-		/*long keysym = lookupKeysym(event_ptr, group*2 + index);
-		if (isNoSymbolOrVendorSpecific(keysym) && index == 1) {
-			keysym = lookupKeysym(event_ptr, group*2 + 0);
-		}
-		if (isNoSymbolOrVendorSpecific(keysym) && group == 1)
-			keysym = getKeySym(event_ptr, 0, index);
-		return keysym;*/
 	}
 	private static native long lookupKeysym(long event_ptr);
 	private static native long toUpper(long keysym);
